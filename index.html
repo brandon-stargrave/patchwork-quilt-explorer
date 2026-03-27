@@ -1069,6 +1069,8 @@ function updateFormulaError(msg) {
 
 function scheduleRender() {
   if (renderTimeout) clearTimeout(renderTimeout);
+  // Stop any running animation preview to avoid orphaned state
+  if (bqAnimRunning) bqAnimStop();
   cancelRender = true;
   renderTimeout = setTimeout(() => { renderFractal(); }, 100);
 }
@@ -1725,6 +1727,10 @@ function bqAnimPreview() {
 
 function bqAnimStop() {
   bqAnimCancelFlag = true;
+  bqAnimRunning = false;
+  document.getElementById('bq-anim-play-btn').style.display = '';
+  document.getElementById('bq-anim-stop-btn').style.display = 'none';
+  document.getElementById('bq-anim-status').textContent = 'Stopped.';
 }
 
 // ========================================================
