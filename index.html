@@ -486,19 +486,23 @@
       <summary>Animation (t parameter)</summary>
       <div class="control-group">
         <label>t value: <span id="t-label">350</span></label>
-        <input type="range" id="t-slider" value="350" min="0" max="2000" step="1">
+        <div style="display:flex; align-items:center; gap:4px;">
+          <button class="secondary" onclick="stepT(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
+          <input type="range" id="t-slider" value="350" min="0" max="2000" step="any" style="flex:1;">
+          <button class="secondary" onclick="stepT(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
+        </div>
       </div>
       <div class="anim-row">
         <button id="anim-play-btn" onclick="toggleAnimation()">&#9654; Play</button>
         <label style="font-size:0.8em; color:#a0c4ff;">Speed:</label>
-        <input type="number" id="anim-speed" value="1" min="-20" max="20" step="1" style="width:60px;">
+        <input type="number" id="anim-speed" value="1" min="-20" max="20" step="0.1" style="width:60px;">
         <label style="font-size:0.8em; color:#a0c4ff;">Dir:</label>
         <select id="anim-dir" style="width:60px; font-size:0.8em;">
           <option value="1">+</option>
           <option value="-1">&minus;</option>
         </select>
       </div>
-      <div class="hint" style="margin-top:4px;">Speed = steps per frame. Negative speed goes backwards.</div>
+      <div class="hint" style="margin-top:4px;">Speed = steps per frame. Use fractional values (e.g. 0.5) for slower playback.</div>
       </details>
     </div>
 
@@ -1427,14 +1431,23 @@ function stopAnimation() {
 
 function animLoop() {
   if (!animating) return;
-  animSpeed = parseInt(document.getElementById('anim-speed').value) || 1;
+  animSpeed = parseFloat(document.getElementById('anim-speed').value) || 1;
   animDir = parseInt(document.getElementById('anim-dir').value) || 1;
   currentT += animSpeed * animDir;
   document.getElementById('t-slider').value = currentT;
-  document.getElementById('t-label').textContent = currentT;
+  document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
   renderFormulaImmediate();
-  document.getElementById('status').textContent = `Animating... t=${currentT}`;
+  document.getElementById('status').textContent = `Animating... t=${Number.isInteger(currentT) ? currentT : currentT.toFixed(2)}`;
   animFrameId = requestAnimationFrame(animLoop);
+}
+
+function stepT(dir) {
+  let speed = parseFloat(document.getElementById('anim-speed').value) || 1;
+  currentT += Math.abs(speed) * dir;
+  document.getElementById('t-slider').value = currentT;
+  document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
+  if (currentMode === 'formula') renderFormulaImmediate();
+  else scheduleRender();
 }
 
 // ========================================================
@@ -1793,7 +1806,7 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
       applyBqAnimValue(cfg.param, val);
     } else {
       // Formula mode: advance t parameter
-      let speed = parseInt(document.getElementById('anim-speed').value) || 1;
+      let speed = parseFloat(document.getElementById('anim-speed').value) || 1;
       let dir = parseInt(document.getElementById('anim-dir').value) || 1;
       currentT = savedT + frameIdx * speed * dir;
     }
@@ -2024,8 +2037,8 @@ function setup() {
     if (!animating) scheduleRender();
   });
   document.getElementById('t-slider').addEventListener('input', () => {
-    currentT = parseInt(document.getElementById('t-slider').value);
-    document.getElementById('t-label').textContent = currentT;
+    currentT = parseFloat(document.getElementById('t-slider').value);
+    document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
     if (!animating) scheduleRender();
   });
 
@@ -2042,6 +2055,7 @@ window.scheduleRender = scheduleRender;
 window.randomize = randomize;
 window.switchMode = switchMode;
 window.toggleAnimation = toggleAnimation;
+window.stepT = stepT;
 window.addRampStop = addRampStop;
 window.removeRampStop = removeRampStop;
 window.updateRampStop = updateRampStop;
