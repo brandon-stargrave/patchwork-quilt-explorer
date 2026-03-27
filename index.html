@@ -8,10 +8,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #00ff8877; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00ff88bb; }
+    @supports not selector(::-webkit-scrollbar) {
+      * { scrollbar-width: thin; scrollbar-color: #00ff8877 transparent; }
+    }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: #1a1a2e;
-      color: #e0e0e0;
+      background: #0a0612;
+      color: #d0d8e8;
       display: flex;
       height: 100vh;
       overflow: hidden;
@@ -19,52 +27,72 @@
     #sidebar {
       width: 370px;
       min-width: 370px;
-      background: #16213e;
+      background: #110b1f;
       padding: 20px;
       overflow-y: auto;
-      border-right: 2px solid #0f3460;
+      border-right: 1px solid #00ff8844;
+      box-shadow: 1px 0 12px #00ff8818;
     }
-    #sidebar h1 { font-size: 1.3em; color: #e94560; margin-bottom: 4px; }
-    #sidebar .subtitle { font-size: 0.8em; color: #888; margin-bottom: 16px; }
+    #sidebar h1 {
+      font-size: 1.3em; margin-bottom: 4px;
+      background: linear-gradient(90deg, #00ff88, #00e5ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #sidebar .subtitle { font-size: 0.8em; color: #5a6a80; margin-bottom: 16px; }
     .control-group { margin-bottom: 14px; }
-    .control-group label { display: block; font-size: 0.85em; color: #a0c4ff; margin-bottom: 3px; }
-    .control-group .hint { font-size: 0.72em; color: #666; margin-top: 2px; }
+    .control-group label { display: block; font-size: 0.85em; color: #00e5ff; margin-bottom: 3px; }
+    .control-group .hint { font-size: 0.72em; color: #4a5568; margin-top: 2px; }
     input[type="number"], input[type="text"], select, textarea {
-      width: 100%; padding: 6px 10px; background: #0f3460;
-      border: 1px solid #1a1a4e; color: #e0e0e0; border-radius: 4px; font-size: 0.9em;
+      width: 100%; padding: 6px 10px; background: #1a0f2e88;
+      border: 1px solid #ffffff12; color: #d0d8e8; border-radius: 4px; font-size: 0.9em;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
+      outline: none; border-color: #00ff8888; box-shadow: 0 0 6px #00ff8833;
     }
     textarea {
       font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85em;
       resize: vertical; min-height: 44px;
     }
-    input[type="range"] { width: 100%; }
+    input[type="range"] {
+      width: 100%; accent-color: #00ff88;
+    }
     .row { display: flex; gap: 10px; }
     .row .control-group { flex: 1; }
     button {
-      padding: 8px 16px; background: #e94560; color: white; border: none;
+      padding: 8px 16px; background: linear-gradient(135deg, #0d2a1a88, #0a1f2e88); color: #00ff88; border: 1px solid #00ff8844;
       border-radius: 4px; cursor: pointer; font-size: 0.9em; margin-right: 6px; margin-bottom: 6px;
+      font-weight: 600; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 8px #00ff8808, inset 0 1px 0 #ffffff08;
     }
-    button:hover { background: #c73651; }
-    button.secondary { background: #0f3460; border: 1px solid #1a1a6e; }
-    button.secondary:hover { background: #1a1a6e; }
+    button:hover { background: linear-gradient(135deg, #0d2a1acc, #0a1f2ecc); border-color: #00ff8888; color: #aaffcc; box-shadow: 0 0 12px #00ff8818, inset 0 1px 0 #ffffff10; }
+    button.secondary {
+      background: linear-gradient(135deg, #1a0f3088, #0d1b2a88); border: 1px solid #00e5ff33; color: #00e5ff;
+      font-weight: normal; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 8px #00e5ff08, inset 0 1px 0 #ffffff08;
+    }
+    button.secondary:hover { background: linear-gradient(135deg, #1a0f30cc, #0d1b2acc); border-color: #00e5ff66; box-shadow: 0 0 12px #00e5ff18, inset 0 1px 0 #ffffff10; color: #66ffee; }
     #canvas-container {
-      flex: 1; display: flex; align-items: center; justify-content: center; background: #0d0d1a;
+      flex: 1; display: flex; align-items: center; justify-content: center; background: #050208;
     }
     canvas { display: block; }
     #magma-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 0.75em; }
     #magma-table td, #magma-table th {
-      border: 1px solid #1a1a4e; padding: 2px 4px; text-align: center; min-width: 22px;
+      border: 1px solid #ffffff10; padding: 2px 4px; text-align: center; min-width: 22px;
     }
-    #magma-table th { background: #0f3460; color: #a0c4ff; }
-    #magma-table td { background: #16213e; }
+    #magma-table th { background: #ffffff0a; color: #00e5ff; }
+    #magma-table td { background: #ffffff06; }
     #magma-table td.editable { cursor: pointer; }
-    #magma-table td.editable:hover { background: #1a3a6e; }
+    #magma-table td.editable:hover { background: #00ff8818; }
     .info-box {
-      background: #0f3460; border-radius: 4px; padding: 8px 10px;
+      background: linear-gradient(135deg, #1a0f3044, #0d1b2a44); border: 1px solid #ffffff10; border-radius: 4px; padding: 8px 10px;
       margin-bottom: 14px; font-size: 0.78em; line-height: 1.5;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 #ffffff06;
     }
-    .info-box code { color: #e94560; }
-    #status { font-size: 0.78em; color: #888; margin-top: 6px; }
+    .info-box code { color: #00ff88; }
+    #status { font-size: 0.78em; color: #5a6a80; margin-top: 6px; }
     .preset-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
     .preset-grid button { font-size: 0.75em; padding: 4px 8px; margin: 0; }
     /* Collapsible sections */
@@ -72,8 +100,8 @@
       margin-top: 10px;
     }
     details.collapsible > summary {
-      font-size: 0.9em; color: #e94560; cursor: pointer;
-      border-bottom: 1px solid #0f3460; padding-bottom: 3px;
+      font-size: 0.9em; color: #00ff88; cursor: pointer;
+      border-bottom: 1px solid #2a154888; padding-bottom: 3px;
       margin-bottom: 6px; list-style: none;
       user-select: none; display: flex; align-items: center; gap: 6px;
     }
@@ -85,30 +113,31 @@
     details.collapsible[open] > summary::before {
       transform: rotate(90deg);
     }
-    details.collapsible > summary:hover { color: #ff6b8a; }
+    details.collapsible > summary:hover { color: #66ffbb; }
     /* Mode tabs */
     .mode-tabs {
       display: flex; gap: 0; margin-bottom: 14px; border-radius: 6px;
-      overflow: hidden; border: 1px solid #0f3460;
+      overflow: hidden; border: 1px solid #ffffff15;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
     .mode-tab {
       flex: 1; padding: 8px 4px; text-align: center; font-size: 0.85em; cursor: pointer;
-      background: #0f3460; color: #888; border: none; border-radius: 0; margin: 0; transition: all 0.15s;
+      background: #ffffff08; color: #5a6a80; border: none; border-radius: 0; margin: 0; transition: all 0.15s;
     }
-    .mode-tab:hover { background: #1a3a6e; color: #ccc; }
-    .mode-tab.active { background: #e94560; color: white; }
+    .mode-tab:hover { background: #ffffff14; color: #00e5ff; }
+    .mode-tab.active { background: #00ff8830; color: #00ff88; font-weight: 600; border-bottom: 2px solid #00ff88; }
     .mode-panel { display: none; }
     .mode-panel.active { display: block; }
     /* Animation controls */
     .anim-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
     .anim-row button { padding: 5px 12px; font-size: 0.85em; margin: 0; }
     .anim-row input[type="number"] { width: 80px; }
-    #formula-error { font-size: 0.75em; color: #ff6b6b; margin-top: 3px; min-height: 1em; }
+    #formula-error { font-size: 0.75em; color: #ff3366; margin-top: 3px; min-height: 1em; }
 
     /* Color ramp editor */
     .ramp-preview {
       height: 20px; border-radius: 3px; margin: 6px 0;
-      border: 1px solid #1a1a4e;
+      border: 1px solid #ffffff12;
     }
     .ramp-stops { max-height: 160px; overflow-y: auto; }
     .ramp-stop-row {
@@ -118,65 +147,78 @@
       width: 48px; padding: 2px 4px; font-size: 0.78em;
     }
     .ramp-stop-row input[type="color"] {
-      width: 28px; height: 22px; padding: 0; border: 1px solid #1a1a4e;
-      background: #0f3460; cursor: pointer; border-radius: 2px;
+      width: 28px; height: 22px; padding: 0; border: 1px solid #ffffff12;
+      background: #ffffff08; cursor: pointer; border-radius: 2px;
     }
     .ramp-stop-row button {
-      padding: 1px 6px; font-size: 0.72em; margin: 0; background: #333; border: 1px solid #555;
+      padding: 1px 6px; font-size: 0.72em; margin: 0; background: #ffffff08; border: 1px solid #ffffff12;
+      color: #5a6a80;
     }
-    .ramp-stop-row button:hover { background: #555; }
+    .ramp-stop-row button:hover { background: #00ff8818; color: #00e5ff; border-color: #00ff8844; }
     #custom-ramp-editor { margin-top: 6px; }
     #export-progress {
-      font-size: 0.78em; color: #a0c4ff;
+      font-size: 0.78em; color: #00e5ff;
     }
     #export-progress progress {
       width: 100%; height: 14px; margin-top: 3px;
       appearance: none; -webkit-appearance: none;
       border-radius: 3px; overflow: hidden;
-      background: #0f3460;
+      background: #ffffff08; border: 1px solid #ffffff10;
     }
-    #export-progress progress::-webkit-progress-bar { background: #0f3460; }
-    #export-progress progress::-webkit-progress-value { background: #e94560; }
-    #export-progress progress::-moz-progress-bar { background: #e94560; }
+    #export-progress progress::-webkit-progress-bar { background: #ffffff08; }
+    #export-progress progress::-webkit-progress-value { background: linear-gradient(90deg, #00ff88, #00e5ff); }
+    #export-progress progress::-moz-progress-bar { background: linear-gradient(90deg, #00ff88, #00e5ff); }
     /* Formula builder block buttons */
     .block-btn {
       font-size: 0.78em !important;
       padding: 3px 7px !important;
       margin: 0 !important;
-      background: #0f3460 !important;
-      border: 1px solid #1a3a6e !important;
-      color: #a0c4ff !important;
+      background: #00e5ff22 !important;
+      border: 1px solid #00e5ff44 !important;
+      color: #00e5ff !important;
       font-family: 'Consolas', 'Monaco', monospace;
-      min-width: 0;
+      min-width: 0; font-weight: 600 !important;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
     .block-btn:hover {
-      background: #1a4a8e !important;
-      color: #fff !important;
+      background: #00e5ff40 !important;
+      border-color: #00e5ff88 !important;
+      color: #aaeeff !important;
     }
     /* User presets */
     .user-preset-row {
       display: flex; align-items: center; gap: 4px; margin-bottom: 4px;
-      font-size: 0.8em; padding: 4px 6px; background: #0f3460;
-      border-radius: 4px; cursor: pointer;
+      font-size: 0.8em; padding: 4px 6px; background: linear-gradient(135deg, #1a0f3044, #0d1b2a44);
+      border: 1px solid #ffffff12; border-radius: 4px; cursor: pointer;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 #ffffff06;
     }
-    .user-preset-row:hover { background: #1a4a8e; }
+    .user-preset-row:hover { background: linear-gradient(135deg, #0d2a1a66, #0a1f2e66); border-color: #00ff8833; }
     .user-preset-row .preset-name {
       flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .user-preset-row .preset-mode {
-      font-size: 0.7em; color: #888; margin-left: 4px;
-      padding: 1px 5px; background: #1a1a2e; border-radius: 3px;
+      font-size: 0.7em; color: #5a6a80; margin-left: 4px;
+      padding: 1px 5px; background: #0a0612; border-radius: 3px;
     }
     .user-preset-row .preset-del {
-      padding: 1px 5px; font-size: 0.7em; margin: 0; background: transparent;
-      border: 1px solid #555; color: #888; cursor: pointer; border-radius: 3px;
+      padding: 1px 5px; font-size: 0.7em; margin: 0; background: linear-gradient(135deg, #1a0f3044, #0d1b2a44);
+      border: 1px solid #ffffff12; color: #5a6a80; cursor: pointer; border-radius: 3px;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     }
-    .user-preset-row .preset-del:hover { background: #c73651; color: #fff; border-color: #c73651; }
+    .user-preset-row .preset-del:hover { background: linear-gradient(135deg, #2a0f1866, #1b0d1566); color: #ff6688; border-color: #ff336666; }
     #user-preset-list { max-height: 200px; overflow-y: auto; margin-bottom: 6px; }
+    .rand-toggle {
+      float: right; font-size: 0.72em; color: #5a6a80; font-weight: normal;
+      display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+    }
+    .rand-toggle input { margin: 0; cursor: pointer; accent-color: #00ff88; }
+    .rand-toggle:hover { color: #00e5ff; }
     .share-box {
       width: 100%; padding: 4px 6px; font-size: 0.72em; font-family: monospace;
-      background: #0a0a1e; color: #a0c4ff; border: 1px solid #0f3460;
+      background: #ffffff06; color: #00e5ff; border: 1px solid #ffffff10;
       border-radius: 3px; resize: vertical; min-height: 36px;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     }
   </style>
 </head>
@@ -229,12 +271,12 @@
       </div>
 
       <div style="margin-top: 14px;">
-        <button onclick="randomize()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#e94560,#0f3460); border:none;">Randomize</button>
+        <button onclick="randomize()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#00ff8825,#00e5ff20); color:#00ff88; border:1px solid #00ff8844; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">Randomize</button>
       </div>
       </details>
 
       <details class="collapsible" open>
-      <summary>Parameters</summary>
+      <summary>Parameters <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-params" checked> rand</label></summary>
       <div class="row">
         <div class="control-group">
           <label>Base p (digit extraction)</label>
@@ -261,7 +303,7 @@
       </details>
 
       <details class="collapsible" open>
-      <summary>Value Mapping</summary>
+      <summary>Value Mapping <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-mapping" checked> rand</label></summary>
       <div class="control-group">
         <select id="mapping-select">
           <option value="linear">Linear (normalized min&ndash;max)</option>
@@ -283,7 +325,7 @@
       </details>
 
       <details class="collapsible" open>
-      <summary>Color Palette</summary>
+      <summary>Color Palette <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-palette" checked> rand</label></summary>
       <div class="control-group">
         <select id="palette-select">
           <option value="viridis">Viridis</option>
@@ -305,7 +347,7 @@
       </details>
 
       <details class="collapsible">
-      <summary>Coarse Graining</summary>
+      <summary>Coarse Graining <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-coarse" checked> rand</label></summary>
       <div class="control-group">
         <label>D parameter (Eq. 31): <span id="d-label">0</span></label>
         <input type="range" id="d-input" value="0" min="-6" max="0" step="1">
@@ -385,12 +427,12 @@
       </div>
 
       <div style="margin-top: 10px;">
-        <button onclick="randomFormula()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#e94560,#0f3460); border:none;">Randomize Formula</button>
+        <button onclick="randomFormula()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#00ff8825,#00e5ff20); color:#00ff88; border:1px solid #00ff8844; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">Randomize Formula</button>
       </div>
       </details>
 
       <details class="collapsible" open>
-      <summary>Formula</summary>
+      <summary>Formula <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-formula" checked> rand</label></summary>
       <div class="control-group">
         <textarea id="formula-input" rows="3">(((x ^ ~y) &amp; ((y - t) >> 3))**2 >> 12) &amp; 1</textarea>
         <div id="formula-error"></div>
@@ -508,7 +550,7 @@
       </details>
 
       <details class="collapsible" open>
-      <summary>Color Mode</summary>
+      <summary>Color Mode <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-colormode" checked> rand</label></summary>
       <div class="control-group">
         <select id="formula-color-select">
           <option value="1bit">1-bit (black &amp; white)</option>
@@ -562,10 +604,15 @@
       </div>
     </div>
 
-    <div class="control-group">
-      <label>Resolution</label>
-      <input type="range" id="res-input" value="1080" min="16" max="1080" step="1">
-      <div class="hint"><span id="res-label">1080</span> x <span id="res-label2">1080</span> px</div>
+    <div class="row">
+      <div class="control-group">
+        <label>Width (px)</label>
+        <input type="number" id="resw-input" value="1080" min="16" max="4096" step="1">
+      </div>
+      <div class="control-group">
+        <label>Height (px)</label>
+        <input type="number" id="resh-input" value="1080" min="16" max="4096" step="1">
+      </div>
     </div>
     </details>
 
@@ -585,7 +632,7 @@
       <button class="secondary" onclick="exportImage()">Save PNG</button>
       <button class="secondary" onclick="exportGIF()">Export GIF</button>
       <button class="secondary" onclick="exportMP4()">Export MP4</button>
-      <button class="secondary" onclick="bqAnimCancelFlag=true" id="export-cancel-btn" style="display:none; background:#c73651; color:white;">Cancel</button>
+      <button class="secondary" onclick="bqAnimCancelFlag=true" id="export-cancel-btn" style="display:none; background:linear-gradient(135deg, #2a0f1888, #1b0d1588); color:#ff6688; border:1px solid #ff336655; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow: 0 0 8px #ff336608, inset 0 1px 0 #ffffff08;">Cancel</button>
     </div>
     <div class="hint" style="margin-top:4px;">GIF/MP4 uses animation settings from the active mode.</div>
     <div id="export-progress" style="margin-top:4px;"></div>
@@ -750,6 +797,8 @@ function paletteLUTColor(lut, t) {
 }
 
 function drawPalettePreview() {
+  let rampEl = document.getElementById('custom-ramp-editor');
+  if (rampEl) rampEl.style.display = currentPalette === 'custom' ? 'block' : 'none';
   let canvas = document.getElementById('palette-preview');
   if (!canvas) return;
   let ctx = canvas.getContext('2d');
@@ -904,7 +953,8 @@ let currentQ = 2;
 let currentR = 6n;
 let currentUmax = 100;
 let currentVmax = 100;
-let currentRes = 1080;
+let currentResW = 1080;
+let currentResH = 1080;
 let currentD = 0;
 let currentMapping = 'linear';
 let currentPalette = 'viridis';
@@ -947,32 +997,35 @@ function formulaIsNotSolidColor(fn, t) {
 }
 
 function randomFormula() {
-  let formula, fn;
-  let attempts = 0;
-  let t = currentT || 350;
+  if (document.getElementById('rand-formula').checked) {
+    let formula, fn;
+    let attempts = 0;
+    let t = currentT || 350;
 
-  // Generate until we find one that compiles AND produces visual variation
-  do {
-    formula = generateRandomFormula();
-    fn = compileFormula(formula);
-    attempts++;
-  } while (attempts < 80 && (!fn || !formulaIsNotSolidColor(fn, t)));
+    // Generate until we find one that compiles AND produces visual variation
+    do {
+      formula = generateRandomFormula();
+      fn = compileFormula(formula);
+      attempts++;
+    } while (attempts < 80 && (!fn || !formulaIsNotSolidColor(fn, t)));
 
-  if (!fn || !formulaIsNotSolidColor(fn, t)) {
-    formula = '(x ^ y) & 0xFF'; // fallback
-    fn = compileFormula(formula);
+    if (!fn || !formulaIsNotSolidColor(fn, t)) {
+      formula = '(x ^ y) & 0xFF'; // fallback
+      fn = compileFormula(formula);
+    }
+
+    document.getElementById('formula-input').value = formula;
+    currentFormula = formula;
+    compiledFormula = fn;
+    updateFormulaError('');
   }
 
-  document.getElementById('formula-input').value = formula;
-  currentFormula = formula;
-  compiledFormula = fn;
-  updateFormulaError('');
-
-  // Pick a random color mode
-  let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'raw_aurora', 'mod_rainbow', 'bits_rgb'];
-  let colorMode = colorModes[Math.floor(Math.random() * colorModes.length)];
-  document.getElementById('formula-color-select').value = colorMode;
-  formulaColorMode = colorMode;
+  if (document.getElementById('rand-colormode').checked) {
+    let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'raw_aurora', 'mod_rainbow', 'bits_rgb'];
+    let colorMode = colorModes[Math.floor(Math.random() * colorModes.length)];
+    document.getElementById('formula-color-select').value = colorMode;
+    formulaColorMode = colorMode;
+  }
 
   if (currentMode !== 'formula') switchMode('formula');
   if (!animating) scheduleRender();
@@ -1139,7 +1192,7 @@ function scheduleRender() {
 // ========================================================
 
 function renderFormulaImmediate() {
-  let res = currentRes;
+  let resW = currentResW, resH = currentResH;
   let umax = currentUmax;
   let vmax = currentVmax;
   let t = currentT;
@@ -1147,23 +1200,23 @@ function renderFormulaImmediate() {
   let colorMode = formulaColorMode;
   if (!fn) return;
 
-  if (width !== res || height !== res) resizeCanvas(res, res);
+  if (width !== resW || height !== resH) resizeCanvas(resW, resH);
 
   loadPixels();
   let pxArr = pixels; // local ref
 
   let needsNorm = colorMode.startsWith('raw_');
-  let values = needsNorm ? new Int32Array(res * res) : null;
+  let values = needsNorm ? new Int32Array(resW * resH) : null;
   let minVal = Infinity, maxVal = -Infinity;
 
   // Bake a turbo LUT for mod_rainbow mode
   let turboLUT = (colorMode === 'mod_rainbow') ? bakePaletteLUT('turbo') : null;
 
-  for (let j = 0; j < res; j++) {
-    let yc = (j / res * vmax) | 0;
-    let rowOff = j * res;
-    for (let i = 0; i < res; i++) {
-      let xc = (i / res * umax) | 0;
+  for (let j = 0; j < resH; j++) {
+    let yc = (j / resH * vmax) | 0;
+    let rowOff = j * resW;
+    for (let i = 0; i < resW; i++) {
+      let xc = (i / resW * umax) | 0;
       let val;
       try { val = fn(xc, yc, t) | 0; } catch(e) { val = 0; }
 
@@ -1178,7 +1231,9 @@ function renderFormulaImmediate() {
       switch (colorMode) {
         case '1bit':     r = g = b = (val & 1) ? 0 : 255; break;
         case '1bit_inv': r = g = b = (val & 1) ? 255 : 0; break;
-        case 'threshold': r = g = b = (val & 1) ? 255 : 0; break;
+        case 'threshold':
+          if (val & 1) { r = 255; g = 0; b = 0; } else { r = 0; g = 0; b = 255; }
+          break;
         case 'mod_rainbow': {
           let off = (val & 0xFF) * 3;
           r = turboLUT[off]; g = turboLUT[off+1]; b = turboLUT[off+2]; break;
@@ -1200,9 +1255,9 @@ function renderFormulaImmediate() {
     let range = maxVal - minVal || 1;
     let invRange = 1 / range;
     let palLUT = bakePaletteLUT(colorMode.replace('raw_', ''));
-    for (let j = 0; j < res; j++) {
-      let rowOff = j * res;
-      for (let i = 0; i < res; i++) {
+    for (let j = 0; j < resH; j++) {
+      let rowOff = j * resW;
+      for (let i = 0; i < resW; i++) {
         let ti = ((values[rowOff + i] - minVal) * invRange * 255 + 0.5) | 0;
         if (ti < 0) ti = 0; else if (ti > 255) ti = 255;
         let off = ti * 3;
@@ -1234,10 +1289,10 @@ function renderBqMode(onComplete) {
   if (currentP < 2) { currentP = 2; document.getElementById('p-input').value = 2; }
   if (currentQ < 1) { currentQ = 1; document.getElementById('q-input').value = 1; }
 
-  if (width !== currentRes || height !== currentRes) resizeCanvas(currentRes, currentRes);
+  if (width !== currentResW || height !== currentResH) resizeCanvas(currentResW, currentResH);
 
   let p = currentP, q = currentQ, R = currentR;
-  let umax = currentUmax, vmax = currentVmax, res = currentRes;
+  let umax = currentUmax, vmax = currentVmax, resW = currentResW, resH = currentResH;
   let D = currentD, mapping = currentMapping, palette = currentPalette;
   let bitplaneK = parseInt(document.getElementById('bp-input').value) || 0;
   let kmin = -D;
@@ -1255,8 +1310,8 @@ function renderBqMode(onComplete) {
   // 3) Bake palette into 256-entry LUT for fast lookup
   let palLUT = bakePaletteLUT(palette);
 
-  let values = new Float64Array(res * res);
-  let carryData = (mapping === 'carries') ? new Uint8Array(res * res) : null;
+  let values = new Float64Array(resW * resH);
+  let carryData = (mapping === 'carries') ? new Uint8Array(resW * resH) : null;
   let minVal = Infinity, maxVal = -Infinity;
   let maxCarry = 0;
 
@@ -1265,20 +1320,22 @@ function renderBqMode(onComplete) {
   let chunkSize = 40; // larger chunks = less setTimeout overhead
 
   // Precompute coordinate lookup: which u or v value for each pixel
-  let uCoords = new Float64Array(res);
-  let vCoords = new Float64Array(res);
-  for (let i = 0; i < res; i++) {
-    uCoords[i] = (i / res) * umax;
-    vCoords[i] = (i / res) * vmax;
+  let uCoords = new Float64Array(resW);
+  let vCoords = new Float64Array(resH);
+  for (let i = 0; i < resW; i++) {
+    uCoords[i] = (i / resW) * umax;
+  }
+  for (let i = 0; i < resH; i++) {
+    vCoords[i] = (i / resH) * vmax;
   }
 
   function renderChunk() {
     if (cancelRender) { rendering = false; return; }
-    let endRow = Math.min(row + chunkSize, res);
+    let endRow = Math.min(row + chunkSize, resH);
     for (let j = row; j < endRow; j++) {
       let vc = vCoords[j];
       let kmv = vc > 0 ? Math.floor(Math.log(vc) / Math.log(p)) : 0;
-      for (let i = 0; i < res; i++) {
+      for (let i = 0; i < resW; i++) {
         let uc = uCoords[i];
         let km = uc > 0 ? Math.floor(Math.log(uc) / Math.log(p)) : 0;
         if (kmv > km) km = kmv;
@@ -1291,7 +1348,7 @@ function renderBqMode(onComplete) {
           let dv = Math.floor(vc / pk) % p;
           result += magmaLUT[du + p * dv] * qPow[k];
         }
-        values[j * res + i] = result;
+        values[j * resW + i] = result;
         if (result < minVal) minVal = result;
         if (result > maxVal) maxVal = result;
 
@@ -1301,15 +1358,15 @@ function renderBqMode(onComplete) {
             let pk = pPow[k];
             if ((Math.floor(uc / pk) % p) + (Math.floor(vc / pk) % p) >= p) count++;
           }
-          carryData[j * res + i] = count;
+          carryData[j * resW + i] = count;
           if (count > maxCarry) maxCarry = count;
         }
       }
     }
     row = endRow;
-    status.textContent = `Rendering... ${Math.round(row/res*100)}%`;
+    status.textContent = `Rendering... ${Math.round(row/resH*100)}%`;
 
-    if (row < res) {
+    if (row < resH) {
       setTimeout(renderChunk, 0);
     } else {
       // Colorize — direct pixel write, pixelDensity is 1
@@ -1322,9 +1379,9 @@ function renderBqMode(onComplete) {
       let invMaxDS = maxDigitSum > 0 ? 1 / maxDigitSum : 0;
       let logP = Math.log(p);
 
-      for (let j = 0; j < res; j++) {
-        let rowOff = j * res;
-        for (let i = 0; i < res; i++) {
+      for (let j = 0; j < resH; j++) {
+        let rowOff = j * resW;
+        for (let i = 0; i < resW; i++) {
           let val = values[rowOff + i];
           let r, g, b;
 
@@ -1540,9 +1597,8 @@ function onRChange() {
 }
 
 function onResChange() {
-  currentRes = parseInt(document.getElementById('res-input').value);
-  document.getElementById('res-label').textContent = currentRes;
-  document.getElementById('res-label2').textContent = currentRes;
+  currentResW = parseInt(document.getElementById('resw-input').value) || 1080;
+  currentResH = parseInt(document.getElementById('resh-input').value) || 1080;
   scheduleRender();
 }
 
@@ -1672,7 +1728,8 @@ function captureState() {
   // Shared
   state.umax = currentUmax;
   state.vmax = currentVmax;
-  state.res = currentRes;
+  state.resW = currentResW;
+  state.resH = currentResH;
 
   if (currentMode === 'bq') {
     state.p = currentP;
@@ -1710,11 +1767,13 @@ function restoreState(state) {
   // Shared
   if (state.umax != null) { currentUmax = state.umax; document.getElementById('umax-input').value = state.umax; }
   if (state.vmax != null) { currentVmax = state.vmax; document.getElementById('vmax-input').value = state.vmax; }
-  if (state.res != null) {
-    currentRes = state.res;
-    document.getElementById('res-input').value = state.res;
-    document.getElementById('res-label').textContent = state.res;
-    document.getElementById('res-label2').textContent = state.res;
+  if (state.resW != null) { currentResW = state.resW; document.getElementById('resw-input').value = state.resW; }
+  if (state.resH != null) { currentResH = state.resH; document.getElementById('resh-input').value = state.resH; }
+  // Legacy: support old single-res states
+  if (state.res != null && state.resW == null) {
+    currentResW = currentResH = state.res;
+    document.getElementById('resw-input').value = state.res;
+    document.getElementById('resh-input').value = state.res;
   }
 
   if (state.mode === 'bq') {
@@ -1864,25 +1923,121 @@ function pastePresetString() {
   document.getElementById('status').textContent = 'Preset loaded from share string!';
 }
 
-function randomize() {
-  let p = 2 + Math.floor(Math.random() * 4);
-  let qChoices = [p, p, p+1, p+2, Math.round((p + Math.random() * 6) * 10) / 10];
-  let q = qChoices[Math.floor(Math.random() * qChoices.length)];
-  if (q < 2) q = 2;
-  let R = 0n, bp = BigInt(p);
-  for (let n = 0; n < p * p; n++) {
-    R += BigInt(Math.floor(Math.random() * p)) * (bp ** BigInt(n));
+// Quick check: sample random points through the full bq + mapping pipeline
+// and reject if every sample maps to the same output value.
+function bqIsNotSolidColor(p, q, R, D, mapping, bitplaneK, umax, vmax) {
+  let magmaLUT = buildMagmaLUT(R, p);
+  let maxCoord = Math.max(umax, vmax);
+  let maxDigits = maxCoord > 0 ? Math.floor(Math.log(maxCoord) / Math.log(p)) + 2 : 2;
+  let pPow = buildPowerTable(p, maxDigits);
+  let qPow = buildPowerTable(q, maxDigits);
+  let kmin = -D;
+  let pScale = 1 / (p - 1 || 1);
+
+  let first = null;
+  for (let i = 0; i < 64; i++) {
+    let u = Math.floor(Math.random() * umax);
+    let v = Math.floor(Math.random() * vmax);
+    let km = 0;
+    if (u > 0) km = Math.floor(Math.log(u) / Math.log(p));
+    let kmv = v > 0 ? Math.floor(Math.log(v) / Math.log(p)) : 0;
+    if (kmv > km) km = kmv;
+
+    let val = bq_fast(magmaLUT, pPow, qPow, p, u, v, kmin, km);
+
+    // Apply the same mapping the renderer uses to get the final color index
+    let mapped;
+    switch (mapping) {
+      case 'bitplane': {
+        mapped = Math.floor(Math.round(val) / pPow[bitplaneK]) % p;
+        break;
+      }
+      case 'modular': {
+        mapped = Math.round(val) % p;
+        break;
+      }
+      case 'msd': {
+        let v2 = Math.round(val);
+        let km2 = v2 > 0 ? Math.floor(Math.log(v2) / Math.log(p)) : 0;
+        mapped = Math.floor(v2 / pPow[km2]) % p;
+        break;
+      }
+      default: {
+        mapped = val;
+      }
+    }
+
+    if (first === null) first = mapped;
+    else if (mapped !== first) return true;
   }
-  currentP = p; currentQ = q; currentR = R;
-  document.getElementById('p-input').value = p;
-  document.getElementById('q-input').value = q;
-  document.getElementById('r-input').value = R.toString();
-  updateMagmaTable();
-  updateRoughnessDisplay();
+  return false;
+}
+
+function randomize() {
+  let attempts = 0;
+  do {
+    if (document.getElementById('rand-params').checked) {
+      let p = 2 + Math.floor(Math.random() * 4);
+      let qChoices = [p, p, p+1, p+2, Math.round((p + Math.random() * 6) * 10) / 10];
+      let q = qChoices[Math.floor(Math.random() * qChoices.length)];
+      if (q < 2) q = 2;
+      let R = 0n, bp = BigInt(p);
+      for (let n = 0; n < p * p; n++) {
+        R += BigInt(Math.floor(Math.random() * p)) * (bp ** BigInt(n));
+      }
+      currentP = p; currentQ = q; currentR = R;
+      document.getElementById('p-input').value = p;
+      document.getElementById('q-input').value = q;
+      document.getElementById('r-input').value = R.toString();
+    }
+
+    if (document.getElementById('rand-mapping').checked) {
+      let mappings = ['linear', 'modular', 'digitsum', 'msd', 'digitrgb', 'contour', 'carries', 'bitplane'];
+      let m = mappings[Math.floor(Math.random() * mappings.length)];
+      document.getElementById('mapping-select').value = m;
+      currentMapping = m;
+      if (m === 'bitplane') {
+        document.getElementById('bp-input').value = Math.floor(Math.random() * 6);
+      }
+    }
+
+    if (document.getElementById('rand-coarse').checked) {
+      let d = -Math.floor(Math.random() * 4);
+      document.getElementById('d-input').value = d;
+      document.getElementById('d-label').textContent = d;
+      currentD = d;
+    }
+
+    attempts++;
+    let bitplaneK = parseInt(document.getElementById('bp-input').value) || 0;
+    if (bqIsNotSolidColor(currentP, currentQ, currentR, currentD, currentMapping, bitplaneK, currentUmax, currentVmax)) break;
+  } while (attempts < 40);
+
+  if (document.getElementById('rand-params').checked) {
+    updateMagmaTable();
+    updateRoughnessDisplay();
+  }
+
+  if (document.getElementById('rand-palette').checked) {
+    let palettes = ['viridis', 'magma', 'inferno', 'plasma', 'turbo', 'grayscale', 'aurora'];
+    let pal = palettes[Math.floor(Math.random() * palettes.length)];
+    document.getElementById('palette-select').value = pal;
+    currentPalette = pal;
+    drawPalettePreview();
+  }
+
   scheduleRender();
 }
 
-function exportImage() { saveCanvas('patchwork_quilt', 'png'); }
+function randomExportName() {
+  let adj = ['fractal','woven','tangled','luminous','prismatic','crystalline','iridescent','latticed','recursive','spectral','tessellated','radiant','braided','quilted','shattered','holographic','folded','infinite','mirrored','ethereal'];
+  let noun = ['quilt','tapestry','weave','lattice','mosaic','pattern','surface','matrix','field','grid','cascade','bloom','spiral','shard','prism','vortex','filament','ridge','plume','glyph'];
+  let mood = ['dawn','dusk','void','ember','frost','haze','flux','drift','pulse','glow','echo','storm','shade','gleam','abyss','zenith','nebula','trance','cipher','rune'];
+  let pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  return `${pick(adj)}_${pick(noun)}_${pick(mood)}`;
+}
+
+function exportImage() { saveCanvas(randomExportName(), 'png'); }
 
 // ========================================================
 // EASING FUNCTIONS
@@ -2105,8 +2260,8 @@ function exportGIF() {
   let gif = new GIF({
     workers: 4,
     quality: 10,
-    width: currentRes,
-    height: currentRes,
+    width: currentResW,
+    height: currentResH,
     workerScript: gifWorkerUrl
   });
 
@@ -2119,7 +2274,7 @@ function exportGIF() {
     let url = URL.createObjectURL(blob);
     let a = document.createElement('a');
     a.href = url;
-    a.download = 'patchwork_quilt.gif';
+    a.download = randomExportName() + '.gif';
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
     prog.innerHTML = `GIF exported! (${(blob.size / 1024 / 1024).toFixed(1)} MB)`;
@@ -2157,69 +2312,352 @@ function exportGIF() {
 }
 
 // ========================================================
-// MP4 EXPORT (via MediaRecorder + WebM, or canvas capture)
+// MP4 EXPORT (via WebCodecs VideoEncoder + manual MP4 mux)
 // ========================================================
+
+// Minimal MP4/ISO BMFF muxer for AVC (H.264) encoded frames
+function muxMP4(encodedChunks, width, height, fps) {
+  // Separate SPS/PPS from IDR/slice NALUs
+  // WebCodecs 'avc1' format gives us raw Annex B NALUs with start codes
+  let sps = null, pps = null;
+
+  // Parse the description (decoderConfig) from the first key frame's metadata
+  // We'll extract SPS/PPS from the bitstream of the first chunk
+  function parseNALUs(data) {
+    let nalus = [];
+    let i = 0;
+    while (i < data.length - 3) {
+      // Find start code (0x00 0x00 0x01 or 0x00 0x00 0x00 0x01)
+      if (data[i] === 0 && data[i+1] === 0 && data[i+2] === 1) {
+        let start = i + 3;
+        let end = data.length;
+        for (let j = start + 1; j < data.length - 2; j++) {
+          if (data[j] === 0 && data[j+1] === 0 && (data[j+2] === 1 || (data[j+2] === 0 && j + 3 < data.length && data[j+3] === 1))) {
+            end = j;
+            break;
+          }
+        }
+        nalus.push(data.slice(start, end));
+        i = end;
+      } else if (data[i] === 0 && data[i+1] === 0 && data[i+2] === 0 && i + 3 < data.length && data[i+3] === 1) {
+        let start = i + 4;
+        let end = data.length;
+        for (let j = start + 1; j < data.length - 2; j++) {
+          if (data[j] === 0 && data[j+1] === 0 && (data[j+2] === 1 || (data[j+2] === 0 && j + 3 < data.length && data[j+3] === 1))) {
+            end = j;
+            break;
+          }
+        }
+        nalus.push(data.slice(start, end));
+        i = end;
+      } else {
+        i++;
+      }
+    }
+    return nalus;
+  }
+
+  // Collect all NALUs and find SPS/PPS
+  let frameSamples = [];
+  for (let chunk of encodedChunks) {
+    let buf = new Uint8Array(chunk.data);
+    let nalus = parseNALUs(buf);
+    let frameNalus = [];
+    for (let nalu of nalus) {
+      let type = nalu[0] & 0x1F;
+      if (type === 7) sps = nalu;
+      else if (type === 8) pps = nalu;
+      else frameNalus.push(nalu);
+    }
+    if (frameNalus.length > 0) {
+      // Convert to length-prefixed format (AVCC)
+      let totalLen = 0;
+      for (let n of frameNalus) totalLen += 4 + n.length;
+      let avcc = new Uint8Array(totalLen);
+      let off = 0;
+      for (let n of frameNalus) {
+        avcc[off] = (n.length >> 24) & 0xFF;
+        avcc[off+1] = (n.length >> 16) & 0xFF;
+        avcc[off+2] = (n.length >> 8) & 0xFF;
+        avcc[off+3] = n.length & 0xFF;
+        avcc.set(n, off + 4);
+        off += 4 + n.length;
+      }
+      frameSamples.push({ data: avcc, isKey: chunk.type === 'key' });
+    }
+  }
+
+  if (!sps || !pps) {
+    throw new Error('No SPS/PPS found in encoded data');
+  }
+
+  // Helper to write big-endian uint32
+  function u32(val) { return [(val >> 24) & 0xFF, (val >> 16) & 0xFF, (val >> 8) & 0xFF, val & 0xFF]; }
+  function u16(val) { return [(val >> 8) & 0xFF, val & 0xFF]; }
+
+  function box(type, ...contents) {
+    let payload = [];
+    for (let c of contents) {
+      if (c instanceof Uint8Array) payload.push(...c);
+      else if (Array.isArray(c)) payload.push(...c);
+      else if (typeof c === 'number') payload.push(c);
+    }
+    let size = 8 + payload.length;
+    return new Uint8Array([...u32(size), type.charCodeAt(0), type.charCodeAt(1), type.charCodeAt(2), type.charCodeAt(3), ...payload]);
+  }
+
+  function fullbox(type, version, flags, ...contents) {
+    let payload = [];
+    for (let c of contents) {
+      if (c instanceof Uint8Array) payload.push(...c);
+      else if (Array.isArray(c)) payload.push(...c);
+    }
+    let size = 12 + payload.length;
+    return new Uint8Array([...u32(size), type.charCodeAt(0), type.charCodeAt(1), type.charCodeAt(2), type.charCodeAt(3), version, (flags >> 16) & 0xFF, (flags >> 8) & 0xFF, flags & 0xFF, ...payload]);
+  }
+
+  let timescale = fps * 100;
+  let frameDuration = 100;
+  let totalDuration = frameSamples.length * frameDuration;
+
+  // avcC box
+  let avcC_data = [
+    1, // configurationVersion
+    sps[1], sps[2], sps[3], // profile, compat, level
+    0xFF, // lengthSizeMinusOne = 3 (4 bytes)
+    0xE1, // numSPS = 1
+    ...u16(sps.length), ...sps,
+    1, // numPPS
+    ...u16(pps.length), ...pps
+  ];
+  let avcCBox = box('avcC', avcC_data);
+
+  // stbl children
+  // stsd
+  let avc1_inner = [
+    ...new Uint8Array(6), // reserved
+    ...u16(1), // data ref index
+    ...new Uint8Array(16), // pre-defined + reserved
+    ...u16(width), ...u16(height),
+    0x00, 0x48, 0x00, 0x00, // horiz res 72dpi
+    0x00, 0x48, 0x00, 0x00, // vert res 72dpi
+    ...new Uint8Array(4), // reserved
+    ...u16(1), // frame count
+    ...new Uint8Array(32), // compressor name
+    ...u16(0x0018), // depth
+    0xFF, 0xFF, // pre-defined
+  ];
+  let avc1Box = box('avc1', avc1_inner, avcCBox);
+  let stsd = fullbox('stsd', 0, 0, u32(1), avc1Box);
+
+  // stts - all frames same duration
+  let stts = fullbox('stts', 0, 0, u32(1), u32(frameSamples.length), u32(frameDuration));
+
+  // stss - sync samples (key frames)
+  let syncSamples = [];
+  frameSamples.forEach((s, i) => { if (s.isKey) syncSamples.push(i + 1); });
+  let stss_data = [...u32(syncSamples.length)];
+  for (let s of syncSamples) stss_data.push(...u32(s));
+  let stss = fullbox('stss', 0, 0, stss_data);
+
+  // stsz - sample sizes
+  let stsz_data = [...u32(0), ...u32(frameSamples.length)];
+  for (let s of frameSamples) stsz_data.push(...u32(s.data.length));
+  let stsz = fullbox('stsz', 0, 0, stsz_data);
+
+  // stsc - one chunk contains all samples
+  let stsc = fullbox('stsc', 0, 0, u32(1), u32(1), u32(frameSamples.length), u32(1));
+
+  // We'll fill stco after we know mdat offset
+  // For now, placeholder
+  let stco_placeholder = fullbox('stco', 0, 0, u32(1), u32(0));
+
+  let stbl = box('stbl', stsd, stts, stss, stsz, stsc, stco_placeholder);
+
+  // minf
+  let vmhd = fullbox('vmhd', 0, 1, u16(0), u16(0), u16(0), u16(0));
+  let dref = fullbox('dref', 0, 0, u32(1), fullbox('url ', 0, 1));
+  let dinf = box('dinf', dref);
+  let minf = box('minf', vmhd, dinf, stbl);
+
+  // mdia
+  let mdhd = fullbox('mdhd', 0, 0, u32(0), u32(0), u32(timescale), u32(totalDuration), u16(0x55C4), u16(0));
+  let hdlr = fullbox('hdlr', 0, 0, u32(0),
+    [0x76, 0x69, 0x64, 0x65], // 'vide'
+    ...Array(12).fill(0),
+    [0x56, 0x69, 0x64, 0x65, 0x6F, 0x00] // 'Video\0'
+  );
+  let mdia = box('mdia', mdhd, hdlr, minf);
+
+  // trak
+  let tkhd = fullbox('tkhd', 0, 3,
+    u32(0), u32(0), // creation/mod time
+    u32(1), // track ID
+    u32(0), // reserved
+    u32(totalDuration), // duration (in movie timescale)
+    ...new Uint8Array(8), // reserved
+    u16(0), u16(0), // layer, alt group
+    u16(0), u16(0), // volume, reserved
+    // identity matrix
+    u32(0x00010000), u32(0), u32(0),
+    u32(0), u32(0x00010000), u32(0),
+    u32(0), u32(0), u32(0x40000000),
+    u16(width), u16(0), // width (fixed point)
+    u16(height), u16(0) // height (fixed point)
+  );
+  let trak = box('trak', tkhd, mdia);
+
+  // mvhd
+  let mvhd = fullbox('mvhd', 0, 0,
+    u32(0), u32(0), // creation/mod time
+    u32(timescale), u32(totalDuration),
+    u32(0x00010000), // rate
+    u16(0x0100), // volume
+    ...new Uint8Array(10), // reserved
+    // identity matrix
+    u32(0x00010000), u32(0), u32(0),
+    u32(0), u32(0x00010000), u32(0),
+    u32(0), u32(0), u32(0x40000000),
+    ...new Uint8Array(24), // pre-defined
+    u32(2) // next track ID
+  );
+
+  let moov = box('moov', mvhd, trak);
+
+  // Build mdat
+  let mdatPayloadSize = 0;
+  for (let s of frameSamples) mdatPayloadSize += s.data.length;
+  let mdatHeader = new Uint8Array([...u32(8 + mdatPayloadSize), 0x6D, 0x64, 0x61, 0x74]); // 'mdat'
+
+  // ftyp
+  let ftyp = box('ftyp',
+    [0x69, 0x73, 0x6F, 0x6D], // isom
+    u32(0x200), // minor version
+    [0x69, 0x73, 0x6F, 0x6D], // isom
+    [0x69, 0x73, 0x6F, 0x32], // iso2
+    [0x61, 0x76, 0x63, 0x31], // avc1
+    [0x6D, 0x70, 0x34, 0x31]  // mp41
+  );
+
+  // Now calculate mdat offset and fix stco
+  let mdatOffset = ftyp.length + moov.length;
+  let stcoChunkOffset = mdatOffset + 8; // after mdat header
+
+  // Find stco in moov and patch it
+  let moovBytes = new Uint8Array(moov);
+  // Search for 'stco' in moov
+  for (let i = 0; i < moovBytes.length - 8; i++) {
+    if (moovBytes[i+4] === 0x73 && moovBytes[i+5] === 0x74 && moovBytes[i+6] === 0x63 && moovBytes[i+7] === 0x6F) {
+      // Patch the chunk offset (last 4 bytes of stco)
+      let offPos = i + 16; // skip size(4) + type(4) + version(1) + flags(3) + entry_count(4)
+      moovBytes[offPos] = (stcoChunkOffset >> 24) & 0xFF;
+      moovBytes[offPos+1] = (stcoChunkOffset >> 16) & 0xFF;
+      moovBytes[offPos+2] = (stcoChunkOffset >> 8) & 0xFF;
+      moovBytes[offPos+3] = stcoChunkOffset & 0xFF;
+      break;
+    }
+  }
+
+  // Also fix tkhd duration to use movie timescale
+  // (already correct since we use same timescale)
+
+  // Concatenate: ftyp + moov + mdat
+  let totalSize = ftyp.length + moovBytes.length + 8 + mdatPayloadSize;
+  let result = new Uint8Array(totalSize);
+  let pos = 0;
+  result.set(ftyp, pos); pos += ftyp.length;
+  result.set(moovBytes, pos); pos += moovBytes.length;
+  result.set(mdatHeader, pos); pos += 8;
+  for (let s of frameSamples) {
+    result.set(s.data, pos);
+    pos += s.data.length;
+  }
+
+  return result;
+}
 
 function exportMP4() {
   let cfg = getActiveAnimConfig();
   let fps = cfg.fps;
   let prog = document.getElementById('export-progress');
 
-  let canvas = document.querySelector('#canvas-container canvas');
-  if (!canvas) { prog.textContent = 'Error: no canvas found'; return; }
-
-  // Check MediaRecorder support
-  let mimeType = '';
-  if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-    mimeType = 'video/webm;codecs=vp9';
-  } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-    mimeType = 'video/webm;codecs=vp8';
-  } else if (MediaRecorder.isTypeSupported('video/webm')) {
-    mimeType = 'video/webm';
-  } else {
-    prog.textContent = 'Error: browser does not support WebM recording. Try GIF export instead.';
+  if (typeof VideoEncoder === 'undefined') {
+    prog.textContent = 'Error: WebCodecs API not supported in this browser. Try Chrome or Edge.';
     return;
   }
 
+  let w = currentResW, h = currentResH;
+  // Ensure even dimensions (H.264 requirement)
+  let encW = w % 2 === 0 ? w : w + 1;
+  let encH = h % 2 === 0 ? h : h + 1;
+
   document.getElementById('export-cancel-btn').style.display = '';
+  prog.innerHTML = `Preparing MP4 (${cfg.frames} frames)...<progress value="0" max="${cfg.frames}"></progress>`;
 
-  prog.innerHTML = `Preparing video (${cfg.frames} frames)...<progress value="0" max="${cfg.frames}"></progress>`;
+  let encodedChunks = [];
+  let encodeDone = false;
 
-  let stream = canvas.captureStream(0); // 0 = manual frame capture
-  let recorder = new MediaRecorder(stream, { mimeType: mimeType, videoBitsPerSecond: 8000000 });
-  let chunks = [];
+  let encoder = new VideoEncoder({
+    output: (chunk, meta) => {
+      let buf = new ArrayBuffer(chunk.byteLength);
+      chunk.copyTo(buf);
+      encodedChunks.push({ data: buf, type: chunk.type });
+    },
+    error: (e) => {
+      prog.textContent = `Encoding error: ${e.message}`;
+      document.getElementById('export-cancel-btn').style.display = 'none';
+    }
+  });
 
-  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  recorder.onstop = () => {
-    let blob = new Blob(chunks, { type: mimeType });
-    let ext = mimeType.includes('webm') ? 'webm' : 'mp4';
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = `patchwork_quilt.${ext}`;
-    a.click();
-    URL.revokeObjectURL(url);
-    document.getElementById('export-cancel-btn').style.display = 'none';
-    prog.innerHTML = `Video exported! (${(blob.size / 1024 / 1024).toFixed(1)} MB, .${ext})`;
-  };
+  encoder.configure({
+    codec: 'avc1.42001f',
+    width: encW,
+    height: encH,
+    bitrate: 8_000_000,
+    framerate: fps,
+    avc: { format: 'annexb' }
+  });
 
-  recorder.start();
-
-  // Frame interval in ms for the target fps
-  let frameInterval = 1000 / fps;
+  let frameIdx = 0;
+  let frameDurationMicros = Math.round(1_000_000 / fps);
 
   renderFrameSequence(
     // onFrame
     (idx, cvs) => {
-      // Request a frame from the capture stream
-      if (stream.getVideoTracks()[0].requestFrame) {
-        stream.getVideoTracks()[0].requestFrame();
-      }
+      let frame = new VideoFrame(cvs, {
+        timestamp: idx * frameDurationMicros,
+        duration: frameDurationMicros
+      });
+      encoder.encode(frame, { keyFrame: idx % (fps * 2 || 1) === 0 });
+      frame.close();
     },
     // onDone
-    () => {
-      // Small delay to ensure last frame is captured
-      setTimeout(() => { recorder.stop(); }, 100);
+    async () => {
+      if (bqAnimCancelFlag) {
+        encoder.close();
+        document.getElementById('export-cancel-btn').style.display = 'none';
+        prog.innerHTML = 'MP4 export cancelled.';
+        return;
+      }
+      prog.innerHTML = 'Encoding final frames...<progress></progress>';
+      await encoder.flush();
+      encoder.close();
+
+      try {
+        let mp4Data = muxMP4(encodedChunks, encW, encH, fps);
+        let blob = new Blob([mp4Data], { type: 'video/mp4' });
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        a.download = `${randomExportName()}.mp4`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        document.getElementById('export-cancel-btn').style.display = 'none';
+        prog.innerHTML = `MP4 exported! (${(blob.size / 1024 / 1024).toFixed(1)} MB)`;
+      } catch (e) {
+        document.getElementById('export-cancel-btn').style.display = 'none';
+        prog.innerHTML = `MP4 mux error: ${e.message}`;
+      }
     },
     // onProgress
     (idx, total) => {
@@ -2234,7 +2672,7 @@ function exportMP4() {
 
 function setup() {
   pixelDensity(1); // avoid 2x/4x pixel writes on retina displays
-  let cnv = createCanvas(currentRes, currentRes);
+  let cnv = createCanvas(currentResW, currentResH);
   cnv.parent('canvas-container');
   background(13, 13, 26);
   noLoop();
@@ -2275,7 +2713,8 @@ function setup() {
     currentVmax = parseInt(document.getElementById('vmax-input').value) || 100;
     scheduleRender();
   });
-  document.getElementById('res-input').addEventListener('input', onResChange);
+  document.getElementById('resw-input').addEventListener('input', onResChange);
+  document.getElementById('resh-input').addEventListener('input', onResChange);
 
   // Formula mode inputs
   document.getElementById('formula-input').addEventListener('input', () => {
