@@ -153,6 +153,31 @@
       background: #1a4a8e !important;
       color: #fff !important;
     }
+    /* User presets */
+    .user-preset-row {
+      display: flex; align-items: center; gap: 4px; margin-bottom: 4px;
+      font-size: 0.8em; padding: 4px 6px; background: #0f3460;
+      border-radius: 4px; cursor: pointer;
+    }
+    .user-preset-row:hover { background: #1a4a8e; }
+    .user-preset-row .preset-name {
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .user-preset-row .preset-mode {
+      font-size: 0.7em; color: #888; margin-left: 4px;
+      padding: 1px 5px; background: #1a1a2e; border-radius: 3px;
+    }
+    .user-preset-row .preset-del {
+      padding: 1px 5px; font-size: 0.7em; margin: 0; background: transparent;
+      border: 1px solid #555; color: #888; cursor: pointer; border-radius: 3px;
+    }
+    .user-preset-row .preset-del:hover { background: #c73651; color: #fff; border-color: #c73651; }
+    #user-preset-list { max-height: 200px; overflow-y: auto; margin-bottom: 6px; }
+    .share-box {
+      width: 100%; padding: 4px 6px; font-size: 0.72em; font-family: monospace;
+      background: #0a0a1e; color: #a0c4ff; border: 1px solid #0f3460;
+      border-radius: 3px; resize: vertical; min-height: 36px;
+    }
   </style>
 </head>
 <body>
@@ -164,6 +189,21 @@
       <button class="mode-tab active" data-mode="bq" onclick="switchMode('bq')">Paper (b<sub>q</sub>)</button>
       <button class="mode-tab" data-mode="formula" onclick="switchMode('formula')">Custom Formula</button>
     </div>
+
+    <!-- ==================== USER PRESETS ==================== -->
+    <details class="collapsible">
+    <summary>User Presets</summary>
+    <div id="user-preset-list"></div>
+    <div style="display:flex; gap:4px; margin-bottom:6px;">
+      <input type="text" id="preset-name-input" placeholder="Preset name..." style="flex:1; padding:4px 6px; font-size:0.8em;">
+      <button onclick="saveUserPreset()" style="padding:4px 10px; font-size:0.8em; margin:0;">Save</button>
+    </div>
+    <div style="display:flex; gap:4px; margin-bottom:6px;">
+      <button class="secondary" onclick="copyPresetString()" style="flex:1; padding:4px 8px; font-size:0.75em; margin:0;">Copy Share String</button>
+      <button class="secondary" onclick="pastePresetString()" style="flex:1; padding:4px 8px; font-size:0.75em; margin:0;">Load from String</button>
+    </div>
+    <textarea id="preset-share-box" class="share-box" rows="2" placeholder="Paste a share string here to load, or copy one above to share..."></textarea>
+    </details>
 
     <!-- ==================== bq MODE ==================== -->
     <div id="panel-bq" class="mode-panel active">
@@ -1087,8 +1127,9 @@ function updateFormulaError(msg) {
 
 function scheduleRender() {
   if (renderTimeout) clearTimeout(renderTimeout);
-  // Stop any running animation preview to avoid orphaned state
+  // Stop any running animation to avoid orphaned state
   if (bqAnimRunning) bqAnimStop();
+  if (animating) stopAnimation();
   cancelRender = true;
   renderTimeout = setTimeout(() => { renderFractal(); }, 100);
 }
@@ -1622,6 +1663,207 @@ function loadFormulaPreset(name) {
   else { stopAnimation(); scheduleRender(); }
 }
 
+// ========================================================
+// USER PRESETS (save / load / share)
+// ========================================================
+
+function captureState() {
+  let state = { mode: currentMode };
+  // Shared
+  state.umax = currentUmax;
+  state.vmax = currentVmax;
+  state.res = currentRes;
+
+  if (currentMode === 'bq') {
+    state.p = currentP;
+    state.q = currentQ;
+    state.R = currentR.toString(); // BigInt → string
+    state.D = currentD;
+    state.mapping = currentMapping;
+    state.palette = currentPalette;
+    state.bitplaneK = parseInt(document.getElementById('bp-input').value) || 0;
+    // Custom ramp (only if palette is custom)
+    if (currentPalette === 'custom') {
+      state.customRamp = customRampStops.map(s => ({ pos: s.pos, color: [...s.color] }));
+    }
+    // Animation config
+    state.animParam = document.getElementById('bq-anim-param').value;
+    state.animStart = parseFloat(document.getElementById('bq-anim-start').value);
+    state.animEnd = parseFloat(document.getElementById('bq-anim-end').value);
+    state.animFrames = parseInt(document.getElementById('bq-anim-frames').value);
+    state.animFps = parseInt(document.getElementById('bq-anim-fps').value);
+    state.animEasing = document.getElementById('bq-anim-easing').value;
+  } else {
+    state.formula = currentFormula;
+    state.color = formulaColorMode;
+    state.t = currentT;
+    state.speed = parseFloat(document.getElementById('anim-speed').value) || 1;
+    state.dir = parseInt(document.getElementById('anim-dir').value) || 1;
+  }
+  return state;
+}
+
+function restoreState(state) {
+  // Switch mode
+  if (state.mode && state.mode !== currentMode) switchMode(state.mode);
+
+  // Shared
+  if (state.umax != null) { currentUmax = state.umax; document.getElementById('umax-input').value = state.umax; }
+  if (state.vmax != null) { currentVmax = state.vmax; document.getElementById('vmax-input').value = state.vmax; }
+  if (state.res != null) {
+    currentRes = state.res;
+    document.getElementById('res-input').value = state.res;
+    document.getElementById('res-label').textContent = state.res;
+    document.getElementById('res-label2').textContent = state.res;
+  }
+
+  if (state.mode === 'bq') {
+    if (state.p != null) { currentP = state.p; document.getElementById('p-input').value = state.p; }
+    if (state.q != null) { currentQ = state.q; document.getElementById('q-input').value = state.q; }
+    if (state.R != null) { currentR = BigInt(state.R); document.getElementById('r-input').value = state.R; }
+    if (state.D != null) { currentD = state.D; document.getElementById('d-input').value = state.D; document.getElementById('d-label').textContent = state.D; }
+    if (state.mapping) { currentMapping = state.mapping; document.getElementById('mapping-select').value = state.mapping; }
+    if (state.palette) { currentPalette = state.palette; document.getElementById('palette-select').value = state.palette; }
+    if (state.bitplaneK != null) { document.getElementById('bp-input').value = state.bitplaneK; document.getElementById('bp-label').textContent = state.bitplaneK; }
+    if (state.customRamp) {
+      customRampStops = state.customRamp.map(s => ({ pos: s.pos, color: [...s.color] }));
+      renderRampEditor();
+    }
+    if (state.animParam) document.getElementById('bq-anim-param').value = state.animParam;
+    if (state.animStart != null) document.getElementById('bq-anim-start').value = state.animStart;
+    if (state.animEnd != null) document.getElementById('bq-anim-end').value = state.animEnd;
+    if (state.animFrames != null) document.getElementById('bq-anim-frames').value = state.animFrames;
+    if (state.animFps != null) document.getElementById('bq-anim-fps').value = state.animFps;
+    if (state.animEasing) document.getElementById('bq-anim-easing').value = state.animEasing;
+    updateMagmaTable();
+    updateRoughnessDisplay();
+    drawPalettePreview();
+    // Show/hide custom ramp editor
+    let rampEditor = document.getElementById('custom-ramp-editor');
+    if (rampEditor) rampEditor.style.display = (currentPalette === 'custom') ? '' : 'none';
+  } else {
+    if (state.formula != null) {
+      currentFormula = state.formula;
+      document.getElementById('formula-input').value = state.formula;
+      compiledFormula = compileFormula(state.formula);
+      if (!compiledFormula) updateFormulaError('Syntax error');
+      else updateFormulaError('');
+    }
+    if (state.color) { formulaColorMode = state.color; document.getElementById('formula-color-select').value = state.color; }
+    if (state.t != null) {
+      currentT = state.t;
+      document.getElementById('t-slider').value = state.t;
+      document.getElementById('t-label').textContent = Number.isInteger(state.t) ? state.t : state.t.toFixed(2);
+    }
+    if (state.speed != null) document.getElementById('anim-speed').value = state.speed;
+    if (state.dir != null) document.getElementById('anim-dir').value = state.dir;
+    stopAnimation();
+  }
+  scheduleRender();
+}
+
+// LocalStorage key
+const USER_PRESETS_KEY = 'patchwork_user_presets';
+
+function loadUserPresets() {
+  try {
+    let data = localStorage.getItem(USER_PRESETS_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch (e) { return []; }
+}
+
+function saveUserPresetsToStorage(presets) {
+  localStorage.setItem(USER_PRESETS_KEY, JSON.stringify(presets));
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderUserPresetList() {
+  let container = document.getElementById('user-preset-list');
+  let presets = loadUserPresets();
+  if (presets.length === 0) {
+    container.innerHTML = '<div class="hint">No saved presets yet.</div>';
+    return;
+  }
+  container.innerHTML = presets.map((p, i) => `
+    <div class="user-preset-row" onclick="loadUserPreset(${i})" title="Click to load">
+      <span class="preset-name">${escHtml(p.name)}</span>
+      <span class="preset-mode">${p.state.mode === 'bq' ? 'Paper' : 'Formula'}</span>
+      <button class="preset-del" onclick="event.stopPropagation(); deleteUserPreset(${i})" title="Delete">&times;</button>
+    </div>
+  `).join('');
+}
+
+function saveUserPreset() {
+  let nameInput = document.getElementById('preset-name-input');
+  let name = nameInput.value.trim();
+  if (!name) {
+    name = currentMode === 'bq'
+      ? `p=${currentP} q=${currentQ} R=${currentR.toString().slice(0, 12)}`
+      : currentFormula.slice(0, 30);
+  }
+  let presets = loadUserPresets();
+  presets.push({ name: name, state: captureState() });
+  saveUserPresetsToStorage(presets);
+  nameInput.value = '';
+  renderUserPresetList();
+}
+
+function loadUserPreset(index) {
+  let presets = loadUserPresets();
+  if (index < 0 || index >= presets.length) return;
+  restoreState(presets[index].state);
+}
+
+function deleteUserPreset(index) {
+  let presets = loadUserPresets();
+  if (index < 0 || index >= presets.length) return;
+  presets.splice(index, 1);
+  saveUserPresetsToStorage(presets);
+  renderUserPresetList();
+}
+
+function stateToShareString(state) {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+}
+
+function shareStringToState(str) {
+  try {
+    return JSON.parse(decodeURIComponent(escape(atob(str.trim()))));
+  } catch (e) { return null; }
+}
+
+function copyPresetString() {
+  let state = captureState();
+  let str = stateToShareString(state);
+  let box = document.getElementById('preset-share-box');
+  box.value = str;
+  box.select();
+  navigator.clipboard.writeText(str).then(() => {
+    document.getElementById('status').textContent = 'Share string copied to clipboard!';
+  }).catch(() => {
+    document.getElementById('status').textContent = 'String ready — copy it manually from the box.';
+  });
+}
+
+function pastePresetString() {
+  let box = document.getElementById('preset-share-box');
+  let str = box.value.trim();
+  if (!str) {
+    document.getElementById('status').textContent = 'Paste a share string into the box first.';
+    return;
+  }
+  let state = shareStringToState(str);
+  if (!state || !state.mode) {
+    document.getElementById('status').textContent = 'Invalid share string.';
+    return;
+  }
+  restoreState(state);
+  document.getElementById('status').textContent = 'Preset loaded from share string!';
+}
+
 function randomize() {
   let p = 2 + Math.floor(Math.random() * 4);
   let qChoices = [p, p, p+1, p+2, Math.round((p + Math.random() * 6) * 10) / 10];
@@ -1868,31 +2110,43 @@ function exportGIF() {
     workerScript: gifWorkerUrl
   });
 
+  // Set up GIF events before rendering frames
+  gif.on('progress', p => {
+    prog.innerHTML = `Encoding GIF... ${Math.round(p*100)}%<progress value="${Math.round(p*100)}" max="100"></progress>`;
+  });
+  gif.on('finished', blob => {
+    document.getElementById('export-cancel-btn').style.display = 'none';
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = 'patchwork_quilt.gif';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    prog.innerHTML = `GIF exported! (${(blob.size / 1024 / 1024).toFixed(1)} MB)`;
+  });
+  gif.on('abort', () => {
+    document.getElementById('export-cancel-btn').style.display = 'none';
+    prog.innerHTML = 'GIF export aborted.';
+  });
+
+  let framesAdded = 0;
+
   renderFrameSequence(
-    // onFrame
+    // onFrame — extract ImageData for reliable cross-origin worker support
     (idx, canvas) => {
-      gif.addFrame(canvas, { delay: delay, copy: true });
+      let ctx = canvas.getContext('2d');
+      let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      gif.addFrame(imgData, { delay: delay });
+      framesAdded++;
     },
     // onDone
     () => {
+      if (bqAnimCancelFlag || framesAdded === 0) {
+        document.getElementById('export-cancel-btn').style.display = 'none';
+        prog.innerHTML = framesAdded === 0 ? 'GIF export cancelled (no frames).' : 'GIF export cancelled.';
+        return;
+      }
       prog.innerHTML = 'Encoding GIF...<progress></progress>';
-      gif.on('progress', p => {
-        prog.innerHTML = `Encoding GIF... ${Math.round(p*100)}%<progress value="${Math.round(p*100)}" max="100"></progress>`;
-      });
-      gif.on('finished', blob => {
-        document.getElementById('export-cancel-btn').style.display = 'none';
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement('a');
-        a.href = url;
-        a.download = 'patchwork_quilt.gif';
-        a.click();
-        URL.revokeObjectURL(url);
-        prog.innerHTML = `GIF exported! (${(blob.size / 1024 / 1024).toFixed(1)} MB)`;
-      });
-      gif.on('abort', () => {
-        document.getElementById('export-cancel-btn').style.display = 'none';
-        prog.innerHTML = 'GIF export aborted.';
-      });
       gif.render();
     },
     // onProgress
@@ -2045,6 +2299,7 @@ function setup() {
     if (!animating) scheduleRender();
   });
 
+  renderUserPresetList();
   renderFractal();
 }
 
@@ -2071,6 +2326,11 @@ window.bqAnimPreview = bqAnimPreview;
 window.bqAnimStop = bqAnimStop;
 window.exportGIF = exportGIF;
 window.exportMP4 = exportMP4;
+window.saveUserPreset = saveUserPreset;
+window.loadUserPreset = loadUserPreset;
+window.deleteUserPreset = deleteUserPreset;
+window.copyPresetString = copyPresetString;
+window.pastePresetString = pastePresetString;
 window.setup = setup;
   </script>
 </body>
