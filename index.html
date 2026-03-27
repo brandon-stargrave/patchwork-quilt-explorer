@@ -252,6 +252,7 @@
           <option value="plasma">Plasma</option>
           <option value="turbo">Turbo</option>
           <option value="grayscale">Grayscale</option>
+          <option value="aurora">Aurora</option>
           <option value="custom">Custom Ramp</option>
         </select>
         <canvas class="ramp-preview" id="palette-preview" width="330" height="20"></canvas>
@@ -476,6 +477,7 @@
           <option value="raw_viridis">Raw &rarr; Viridis</option>
           <option value="raw_magma">Raw &rarr; Magma</option>
           <option value="raw_turbo">Raw &rarr; Turbo</option>
+          <option value="raw_aurora">Raw &rarr; Aurora</option>
           <option value="mod_rainbow">Mod 256 Rainbow</option>
           <option value="bits_rgb">Low 3 bits &rarr; RGB</option>
         </select>
@@ -644,7 +646,8 @@ const PALETTE_STOPS = {
   inferno:   [[0,0,4],[87,16,110],[188,55,84],[249,142,9],[252,255,164]],
   plasma:    [[13,8,135],[126,3,168],[204,71,120],[248,149,64],[240,249,33]],
   turbo:     [[48,18,59],[70,130,180],[40,200,130],[230,220,50],[122,4,3]],
-  grayscale: [[0,0,0],[64,64,64],[128,128,128],[192,192,192],[255,255,255]]
+  grayscale: [[0,0,0],[64,64,64],[128,128,128],[192,192,192],[255,255,255]],
+  aurora:    [[20,0,60],[60,10,120],[80,30,160],[40,120,160],[30,200,180],[100,240,150]]
 };
 
 // Custom ramp: array of {pos: 0..1, color: [r,g,b]}
@@ -926,7 +929,7 @@ function randomFormula() {
   updateFormulaError('');
 
   // Pick a random color mode
-  let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'mod_rainbow', 'bits_rgb'];
+  let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'raw_aurora', 'mod_rainbow', 'bits_rgb'];
   let colorMode = colorModes[Math.floor(Math.random() * colorModes.length)];
   document.getElementById('formula-color-select').value = colorMode;
   formulaColorMode = colorMode;
