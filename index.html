@@ -81,10 +81,10 @@
     }
     .num-spin .spin-btn {
       flex: 1; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg, #0d2a1a66, #0a1f2e66);
-      color: #00ff88; font-size: 0.55em; cursor: pointer; user-select: none;
+      background: transparent;
+      color: #00ff8855; font-size: 0.45em; cursor: pointer; user-select: none;
       border: none; padding: 0; margin: 0; line-height: 1;
-      transition: background 0.15s;
+      transition: background 0.15s, color 0.15s;
     }
     .num-spin .spin-btn:hover {
       background: linear-gradient(135deg, #0d2a1acc, #0a1f2ecc);
@@ -185,15 +185,35 @@
     /* Randomize label pop */
     @keyframes label-pop {
       0% { transform: scale(1); }
-      30% { transform: scale(1.12); }
-      60% { transform: scale(0.97); }
+      25% { transform: scale(1.12); }
+      55% { transform: scale(0.96); }
       100% { transform: scale(1); }
     }
     .randomize-btn .btn-label {
       display: inline-block;
+      transition: transform 0.1s ease;
     }
     .randomize-btn .btn-label.pop {
-      animation: label-pop 0.35s ease-out;
+      animation: label-pop 0.4s ease-out;
+    }
+    .randomize-btn:active .btn-label,
+    .randomize-btn.pressed .btn-label {
+      transform: scale(0.92);
+    }
+    .randomize-btn:active,
+    .randomize-btn.pressed {
+      filter: brightness(0.65);
+    }
+    .randomize-btn {
+      transition: filter 0.1s ease;
+    }
+    @keyframes btn-flash {
+      0% { filter: brightness(1); }
+      20% { filter: brightness(1.6); }
+      100% { filter: brightness(1); }
+    }
+    .randomize-btn.flash {
+      animation: btn-flash 0.4s ease-out;
     }
     button.secondary {
       background: linear-gradient(135deg, #1a0f3088, #0d1b2a88); border: 1px solid #00e5ff33; color: #00e5ff;
@@ -256,6 +276,20 @@
     .mode-tab.active { background: #00ff8830; color: #00ff88; font-weight: 600; border-bottom: 2px solid #00ff88; }
     .mode-panel { display: none; }
     .mode-panel.active { display: block; }
+    /* Drag handle for layer reorder */
+    .layer-drag-handle {
+      cursor: grab; color: #00ff8866; font-size: 1em; padding: 2px 4px;
+      user-select: none; touch-action: none; display: flex; align-items: center;
+    }
+    .layer-drag-handle:hover { color: #00ff88cc; }
+    .layer-drag-handle:active { cursor: grabbing; }
+    .layer-row.dragging { opacity: 0.4; }
+    .layer-drop-indicator {
+      height: 2px; background: #00ff88; border-radius: 1px;
+      box-shadow: 0 0 8px #00ff8888, 0 0 3px #00ff88;
+      margin: -1px 0; position: relative; z-index: 5;
+      pointer-events: none;
+    }
     /* Animation controls */
     .anim-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
     .anim-row button { padding: 5px 12px; font-size: 0.85em; margin: 0; }
@@ -378,7 +412,27 @@
       <button class="mode-tab" data-mode="layers" onclick="switchMode('layers')">Bitwise Layers</button>
     </div>
 
-    <button class="primary randomize-btn" id="main-randomize-btn" onclick="sparkleRandomize(this, activeRandomize)" style="width:100%; padding:12px; font-size:1.05em; margin-bottom:10px;"><span class="btn-label">&#10024; Randomize &#10024;</span></button>
+    <button class="primary randomize-btn" id="main-randomize-btn" onmousedown="randomizeBtnDown(this)" onmouseup="randomizeBtnUp(this)" onmouseleave="randomizeBtnCancel(this)" style="width:100%; padding:12px; font-size:1.05em; margin-bottom:10px;"><span class="btn-label">&#10024; Randomize &#10024;</span></button>
+
+    <div id="desc-bq" class="mode-desc">
+      <div class="info-box">
+        Explore <code>b<sub>q</sub>(<sup>2</sup>R<sub>p</sub>; u, v)</code> &mdash; generalized bitwise
+        operators that produce fractal "patchwork quilt" surfaces. Based on
+        Garc&iacute;a-Morales' digital calculus framework.
+      </div>
+    </div>
+    <div id="desc-formula" class="mode-desc" style="display:none;">
+      <div class="info-box">
+        Enter a bitwise/arithmetic expression in <code>x</code>, <code>y</code>, and <code>t</code>.
+        Uses JavaScript integer ops: <code>^ &amp; | ~ >> &lt;&lt; + - * ** %</code>.
+        The expression is evaluated per-pixel and the result is colored.
+      </div>
+    </div>
+    <div id="desc-layers" class="mode-desc" style="display:none;">
+      <div class="info-box" style="font-size:0.82em; color:#a0c4ff;">
+        Chain bitwise operations in layers. Each layer applies an operator with shift &amp; scale. Optional feedback iterates the result.
+      </div>
+    </div>
 
     <!-- ==================== USER PRESETS ==================== -->
     <details class="collapsible">
@@ -397,13 +451,7 @@
 
     <!-- ==================== bq MODE ==================== -->
     <div id="panel-bq" class="mode-panel active">
-      <div class="info-box">
-        Explore <code>b<sub>q</sub>(<sup>2</sup>R<sub>p</sub>; u, v)</code> &mdash; generalized bitwise
-        operators that produce fractal "patchwork quilt" surfaces. Based on
-        Garc&iacute;a-Morales' digital calculus framework.
-      </div>
-
-      <details class="collapsible" open>
+      <details class="collapsible" open data-sync-group="presets">
       <summary>Presets</summary>
       <div class="preset-grid">
         <button onclick="loadPreset('xor2')">XOR (p=2)</button>
@@ -545,8 +593,10 @@
         </select>
       </div>
       <div class="anim-row" style="flex-wrap:wrap;">
+        <button class="secondary" onclick="bqStepAnim(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
         <button id="bq-anim-play-btn" onclick="bqAnimPreview()">&#9654; Preview</button>
         <button id="bq-anim-stop-btn" class="secondary" onclick="bqAnimStop()" style="display:none;">&#9724; Stop</button>
+        <button class="secondary" onclick="bqStepAnim(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
       </div>
       <div class="hint" id="bq-anim-status"></div>
       </details>
@@ -554,13 +604,7 @@
 
     <!-- ==================== FORMULA MODE ==================== -->
     <div id="panel-formula" class="mode-panel">
-      <div class="info-box">
-        Enter a bitwise/arithmetic expression in <code>x</code>, <code>y</code>, and <code>t</code>.
-        Uses JavaScript integer ops: <code>^ &amp; | ~ >> &lt;&lt; + - * ** %</code>.
-        The expression is evaluated per-pixel and the result is colored.
-      </div>
-
-      <details class="collapsible" open>
+      <details class="collapsible" open data-sync-group="presets">
       <summary>Presets</summary>
       <div class="preset-grid">
         <button onclick="loadFormulaPreset('knuth')">Knuth</button>
@@ -693,7 +737,7 @@
       </div>
       </details>
 
-      <details class="collapsible" open>
+      <details class="collapsible" open data-sync-group="colormode">
       <summary>Color Mode <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-colormode" checked> rand</label></summary>
       <div class="control-group">
         <select id="formula-color-select">
@@ -718,7 +762,7 @@
       </div>
       </details>
 
-      <details class="collapsible">
+      <details class="collapsible" data-sync-group="animation">
       <summary>Animation (t parameter)</summary>
       <div class="control-group">
         <label>t value: <span id="t-label">350</span></label>
@@ -744,12 +788,8 @@
 
     <!-- ==================== BITWISE LAYERS MODE ==================== -->
     <div id="panel-layers" class="mode-panel">
-      <div class="info-box" style="margin-bottom:10px; font-size:0.82em; color:#a0c4ff;">
-        Chain bitwise operations in layers. Each layer applies an operator with shift &amp; scale. Optional feedback iterates the result.
-      </div>
-
       <!-- Built-in Presets -->
-      <details class="collapsible" open>
+      <details class="collapsible" open data-sync-group="presets">
         <summary>Presets</summary>
         <div class="preset-grid">
           <button class="preset-btn" onclick="loadLayersPreset('xor_cascade')">XOR Cascade</button>
@@ -789,15 +829,15 @@
       <details class="collapsible">
         <summary>Feedback <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-feedback" checked> rand</label></summary>
         <div class="control-group">
-          <label><input type="checkbox" id="feedback-enable"> Enable feedback loop</label>
+          <label><input type="checkbox" id="feedback-enable" onchange="onLayersParamChange()"> Enable feedback loop</label>
         </div>
         <div class="control-group">
           <label>Iterations (1-16)</label>
-          <input type="number" id="feedback-iterations" value="3" min="1" max="16">
+          <input type="number" id="feedback-iterations" value="3" min="1" max="16" onchange="onLayersParamChange()">
         </div>
         <div class="control-group">
           <label>Feedback operator</label>
-          <select id="feedback-op">
+          <select id="feedback-op" onchange="onLayersParamChange()">
             <option value="XOR">XOR</option>
             <option value="AND">AND</option>
             <option value="OR">OR</option>
@@ -810,7 +850,7 @@
         </div>
         <div class="control-group">
           <label>Feedback source</label>
-          <select id="feedback-source">
+          <select id="feedback-source" onchange="onLayersParamChange()">
             <option value="x">x coordinate</option>
             <option value="y">y coordinate</option>
             <option value="xy">x + y</option>
@@ -820,7 +860,7 @@
       </details>
 
       <!-- Color Mode -->
-      <details class="collapsible" open>
+      <details class="collapsible" open data-sync-group="colormode">
         <summary>Color Mode <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-layerscolor" checked> rand</label></summary>
         <div class="control-group">
           <select id="layers-color-select" onchange="onLayersParamChange()">
@@ -846,12 +886,16 @@
       </details>
 
       <!-- Animation -->
-      <details class="collapsible">
+      <details class="collapsible" data-sync-group="animation">
       <summary>Animation</summary>
       <div class="control-group">
         <label>t = <span id="layers-t-label">0</span></label>
-        <input type="range" id="layers-t-slider" min="-2000" max="2000" value="0" step="1"
-          oninput="currentT=parseFloat(this.value); document.getElementById('layers-t-label').textContent=this.value; if(!animating) renderLayersImmediate();">
+        <div style="display:flex; align-items:center; gap:4px;">
+          <button class="secondary" onclick="stepT(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
+          <input type="range" id="layers-t-slider" min="-2000" max="2000" value="0" step="1" style="flex:1;"
+            oninput="currentT=parseFloat(this.value); document.getElementById('layers-t-label').textContent=this.value; if(!animating) renderLayersImmediate();">
+          <button class="secondary" onclick="stepT(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
+        </div>
       </div>
       <div class="control-group">
         <label>Animate parameter</label>
@@ -898,6 +942,7 @@
         <input type="number" id="resh-input" value="1080" min="16" max="4096" step="1">
       </div>
     </div>
+
     </details>
 
     <details class="collapsible" open>
@@ -912,13 +957,14 @@
         <input type="number" id="export-fps" value="30" min="1" max="60">
       </div>
     </div>
-    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-      <button class="primary" onclick="exportImage()">Save PNG</button>
-      <button class="primary" onclick="exportGIF()">Export GIF</button>
-      <button class="primary" onclick="exportMP4()">Export MP4</button>
-      <button class="secondary" onclick="bqAnimCancelFlag=true" id="export-cancel-btn" style="display:none; background:linear-gradient(135deg, #2a0f1888, #1b0d1588); color:#ff6688; border:1px solid #ff336655; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow: 0 0 8px #ff336608, inset 0 1px 0 #ffffff08;">Cancel</button>
+    <div style="display:flex; align-items:stretch; gap:0; font-size:1em;">
+      <button class="primary" onclick="exportGIF()" style="margin:0; flex:1; display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; padding:8px 0; border-radius:6px 0 0 6px;"><span style="font-size:0.6em; opacity:0.5;">export</span>GIF</button>
+      <button class="primary" onclick="exportMP4()" style="margin:0; flex:1; display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; padding:8px 0; border-radius:0;"><span style="font-size:0.6em; opacity:0.5;">export</span>MP4</button>
+      <button class="secondary" onclick="bqAnimCancelFlag=true" id="export-cancel-btn" style="display:none; margin:0; background:linear-gradient(135deg, #2a0f1888, #1b0d1588); color:#ff6688; border:1px solid #ff336655;">Cancel</button>
+      <span style="width:1px; flex:none; background:#ffffff20; margin:0 4px;"></span>
+      <button class="primary" onclick="exportImage()" style="margin:0; flex:1; display:inline-flex; flex-direction:column; align-items:center; line-height:1.2; padding:8px 0; border-radius:0 6px 6px 0; opacity:0.85;"><span style="font-size:0.6em; opacity:0.5;">export</span>PNG</button>
     </div>
-    <div class="hint" style="margin-top:4px;">GIF/MP4 uses animation settings from the active mode.</div>
+    <div class="hint" style="margin-top:4px; font-size:0.65em; opacity:0.5;">GIF/MP4 uses animation settings from the active mode.</div>
     <div id="export-progress" style="margin-top:4px;"></div>
     <div id="status" style="margin-top:6px;">Ready.</div>
     </details>
@@ -2152,7 +2198,7 @@ function renderLayerStackUI() {
   let ops = ['XOR','AND','OR','NAND','NOR','XNOR','ADD','SUB','MUL'];
   let canRemove = bitwiseLayers.length > 1;
   container.innerHTML = bitwiseLayers.map((L, i) => `
-    <div class="layer-row" style="display:flex; gap:4px; align-items:center; margin-bottom:4px; padding:4px; background:rgba(0,255,136,0.05); border-radius:6px; border:1px solid rgba(0,255,136,0.15);">
+    <div class="layer-row" data-layer-idx="${i}" style="display:flex; gap:4px; align-items:center; margin-bottom:4px; padding:4px; background:rgba(0,255,136,0.05); border-radius:6px; border:1px solid rgba(0,255,136,0.15);">
       <span style="color:#00ff88; font-size:0.75em; min-width:14px;">${i+1}</span>
       <select class="layer-op" onchange="onLayersParamChange()" style="width:62px; flex:none; font-size:0.8em; padding:4px 2px;">
         ${ops.map(o => `<option value="${o}" ${o===L.op?'selected':''}>${o}</option>`).join('')}
@@ -2162,14 +2208,16 @@ function renderLayerStackUI() {
       <label style="font-size:0.7em; color:#a0c4ff;">scale</label>
       <span class="num-spin"><input class="layer-scale" type="number" value="${L.scale}" min="1" max="32" onchange="onLayersParamChange()" style="width:54px; font-size:0.8em; padding:4px 4px;"><span class="spin-btns"><button class="spin-btn" onclick="stepNumInput(this,'up')">▲</button><button class="spin-btn" onclick="stepNumInput(this,'down')">▼</button></span></span>
       ${canRemove ? `<button onclick="removeBitwiseLayer(${i})" style="font-size:0.7em; padding:2px 5px; background:rgba(255,0,80,0.3); border:1px solid rgba(255,0,80,0.5); color:#ff5080; border-radius:4px; cursor:pointer;">&times;</button>` : ''}
+      <span class="layer-drag-handle" title="Drag to reorder">&#x2630;</span>
     </div>
   `).join('');
-  document.getElementById('add-layer-btn').disabled = bitwiseLayers.length >= 4;
+  document.getElementById('add-layer-btn').disabled = bitwiseLayers.length >= 6;
+  initLayerDragHandles();
   wrapLayerSelects();
 }
 
 function addBitwiseLayer() {
-  if (bitwiseLayers.length >= 4) return;
+  if (bitwiseLayers.length >= 6) return;
   let ops = ['XOR','AND','OR','NAND','NOR','XNOR'];
   bitwiseLayers.push({ op: ops[Math.floor(Math.random()*ops.length)], shift: Math.floor(Math.random()*5), scale: 1 });
   renderLayerStackUI();
@@ -2181,6 +2229,105 @@ function removeBitwiseLayer(index) {
   bitwiseLayers.splice(index, 1);
   renderLayerStackUI();
   onLayersParamChange();
+}
+
+function initLayerDragHandles() {
+  let container = document.getElementById('layers-container');
+  let rows = Array.from(container.querySelectorAll('.layer-row'));
+  if (rows.length < 2) return;
+
+  let indicator = document.createElement('div');
+  indicator.className = 'layer-drop-indicator';
+  indicator.style.display = 'none';
+
+  rows.forEach(row => {
+    let handle = row.querySelector('.layer-drag-handle');
+    handle.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+
+      let fromIdx = parseInt(row.dataset.layerIdx);
+      let startY = e.clientY;
+      let dropGap = -1; // gap index: 0 = before row 0, 1 = between row 0 and 1, etc.
+      row.classList.add('dragging');
+
+      row.style.position = 'relative';
+      row.style.zIndex = '10';
+      row.style.transition = 'none';
+
+      function onMove(ev) {
+        let dy = ev.clientY - startY;
+        row.style.transform = `translateY(${dy}px)`;
+
+        // Find which gap the cursor is closest to
+        let cursorY = ev.clientY;
+        let bestGap = -1;
+        let bestDist = Infinity;
+        for (let i = 0; i <= rows.length; i++) {
+          let gapY;
+          if (i === 0) {
+            gapY = rows[0].getBoundingClientRect().top;
+          } else if (i === rows.length) {
+            gapY = rows[rows.length - 1].getBoundingClientRect().bottom;
+          } else {
+            let above = rows[i - 1].getBoundingClientRect().bottom;
+            let below = rows[i].getBoundingClientRect().top;
+            gapY = (above + below) / 2;
+          }
+          let dist = Math.abs(cursorY - gapY);
+          if (dist < bestDist) { bestDist = dist; bestGap = i; }
+        }
+
+        // Skip gaps that would result in no movement
+        if (bestGap === fromIdx || bestGap === fromIdx + 1) {
+          if (indicator.parentNode) indicator.style.display = 'none';
+          dropGap = -1;
+          return;
+        }
+
+        if (bestGap !== dropGap) {
+          dropGap = bestGap;
+          // Position the indicator at the gap
+          if (dropGap === 0) {
+            container.insertBefore(indicator, rows[0]);
+          } else if (dropGap >= rows.length) {
+            container.appendChild(indicator);
+          } else {
+            container.insertBefore(indicator, rows[dropGap]);
+          }
+          indicator.style.display = '';
+        }
+      }
+
+      function onUp() {
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+        handle.removeEventListener('pointercancel', onUp);
+
+        row.classList.remove('dragging');
+        row.style.position = '';
+        row.style.zIndex = '';
+        row.style.transform = '';
+        row.style.transition = '';
+        if (indicator.parentNode) indicator.remove();
+
+        if (dropGap >= 0) {
+          // Convert gap index to target array index after removal
+          let toIdx = dropGap > fromIdx ? dropGap - 1 : dropGap;
+          if (toIdx !== fromIdx && toIdx >= 0 && toIdx < bitwiseLayers.length) {
+            let moved = bitwiseLayers.splice(fromIdx, 1)[0];
+            bitwiseLayers.splice(toIdx, 0, moved);
+            renderLayerStackUI();
+            onLayersParamChange();
+          }
+        }
+      }
+
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+      handle.addEventListener('pointercancel', onUp);
+    });
+  });
 }
 
 function onLayersParamChange() {
@@ -2196,7 +2343,7 @@ function activeRandomize() {
 function sparkleRandomize(btn, fn) {
   let colors = ['#00ff88', '#00e5ff', '#a855f7', '#ffee55', '#ff66aa', '#88ffcc', '#55aaff'];
   let stars = ['✦', '✧', '✴', '⋆', '✶', '·', '✸', '⊹'];
-  let count = 12 + Math.floor(Math.random() * 5);
+  let count = 22 + Math.floor(Math.random() * 10);
   for (let i = 0; i < count; i++) {
     let spark = document.createElement('span');
     spark.className = 'sparkle';
@@ -2214,7 +2361,7 @@ function sparkleRandomize(btn, fn) {
     spark.style.top = startY + '%';
     spark.style.color = colors[Math.floor(Math.random() * colors.length)];
     spark.style.fontSize = size + 'em';
-    spark.style.opacity = (0.3 + Math.random() * 0.7);
+    spark.style.opacity = (0.65 + Math.random() * 0.35);
     spark.style.animationDelay = (Math.random() * 0.25) + 's';
 
     let name = 'sparkle_' + Math.random().toString(36).slice(2, 8);
@@ -2231,9 +2378,26 @@ function sparkleRandomize(btn, fn) {
     btn.appendChild(spark);
     spark.addEventListener('animationend', () => { spark.remove(); style.remove(); });
   }
+  btn.classList.remove('flash'); void btn.offsetWidth; btn.classList.add('flash');
+  btn.addEventListener('animationend', () => btn.classList.remove('flash'), { once: true });
   let lbl = btn.querySelector('.btn-label');
   if (lbl) { lbl.classList.remove('pop'); void lbl.offsetWidth; lbl.classList.add('pop'); }
   fn();
+}
+
+function randomizeBtnDown(btn) {
+  btn._pressed = true;
+  btn.classList.add('pressed');
+}
+function randomizeBtnUp(btn) {
+  if (!btn._pressed) return;
+  btn._pressed = false;
+  btn.classList.remove('pressed');
+  sparkleRandomize(btn, activeRandomize);
+}
+function randomizeBtnCancel(btn) {
+  btn._pressed = false;
+  btn.classList.remove('pressed');
 }
 
 function stepNumInput(btn, dir) {
@@ -2263,6 +2427,28 @@ function stepSelect(btn, dir) {
   }
   sel.selectedIndex = idx;
   sel.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function wrapAllNumInputs() {
+  let sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  sidebar.querySelectorAll('input[type="number"]').forEach(inp => {
+    if (inp.parentElement.classList.contains('num-spin')) return;
+    // Skip inputs inside dynamically-generated layer rows (they handle their own)
+    if (inp.closest('#layers-container')) return;
+    // Skip ramp stop rows (too tight)
+    if (inp.closest('.ramp-stop-row')) return;
+
+    let wrapper = document.createElement('span');
+    wrapper.className = 'num-spin';
+    inp.parentNode.insertBefore(wrapper, inp);
+    wrapper.appendChild(inp);
+
+    let btns = document.createElement('span');
+    btns.className = 'spin-btns';
+    btns.innerHTML = '<button class="spin-btn" onclick="stepNumInput(this,\'up\')" tabindex="-1">▲</button><button class="spin-btn" onclick="stepNumInput(this,\'down\')" tabindex="-1">▼</button>';
+    wrapper.appendChild(btns);
+  });
 }
 
 function wrapAllSelects() {
@@ -2439,7 +2625,7 @@ function randomLayers() {
   let found = false;
   do {
     if (document.getElementById('rand-layers').checked) {
-      let count = 2 + Math.floor(Math.random() * 3); // 2-4
+      let count = 2 + Math.floor(Math.random() * 5); // 2-6
       bitwiseLayers = [];
       for (let i = 0; i < count; i++) {
         bitwiseLayers.push({
@@ -2561,7 +2747,33 @@ function stepT(dir) {
 // MODE SWITCHING
 // ========================================================
 
+function syncCollapsibleState() {
+  // Snapshot open/closed state for all sync-grouped details across all panels
+  let state = {};
+  document.querySelectorAll('details[data-sync-group]').forEach(d => {
+    let group = d.dataset.syncGroup;
+    // Visible panel's state wins (last written from visible panel)
+    let panel = d.closest('.mode-panel');
+    if (panel && panel.classList.contains('active')) {
+      state[group] = d.open;
+    } else if (!(group in state)) {
+      state[group] = d.open;
+    }
+  });
+  return state;
+}
+
+function applyCollapsibleState(state) {
+  document.querySelectorAll('details[data-sync-group]').forEach(d => {
+    let group = d.dataset.syncGroup;
+    if (group in state) d.open = state[group];
+  });
+}
+
 function switchMode(mode) {
+  // Capture collapsible state before switching
+  let collapsibleState = syncCollapsibleState();
+
   currentMode = mode;
   document.querySelectorAll('.mode-tab').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.mode === mode);
@@ -2569,6 +2781,12 @@ function switchMode(mode) {
   document.getElementById('panel-bq').classList.toggle('active', mode === 'bq');
   document.getElementById('panel-formula').classList.toggle('active', mode === 'formula');
   document.getElementById('panel-layers').classList.toggle('active', mode === 'layers');
+  document.getElementById('desc-bq').style.display = mode === 'bq' ? '' : 'none';
+  document.getElementById('desc-formula').style.display = mode === 'formula' ? '' : 'none';
+  document.getElementById('desc-layers').style.display = mode === 'layers' ? '' : 'none';
+
+  // Apply saved collapsible state to the newly visible panel
+  applyCollapsibleState(collapsibleState);
 
   if (mode === 'formula') {
     compiledFormula = compileFormula(document.getElementById('formula-input').value);
@@ -3098,6 +3316,7 @@ function applyEasing(t, easing) {
 
 let bqAnimRunning = false;
 let bqAnimCancelFlag = false;
+let bqAnimFrameIdx = 0;
 
 function getBqAnimConfig() {
   return {
@@ -3198,6 +3417,19 @@ function bqAnimStop() {
   document.getElementById('bq-anim-play-btn').style.display = '';
   document.getElementById('bq-anim-stop-btn').style.display = 'none';
   document.getElementById('bq-anim-status').textContent = 'Stopped.';
+}
+
+function bqStepAnim(dir) {
+  if (bqAnimRunning) return;
+  let cfg = getBqAnimConfig();
+  bqAnimFrameIdx = Math.max(0, Math.min(cfg.frames - 1, bqAnimFrameIdx + dir));
+  let t = cfg.frames > 1 ? bqAnimFrameIdx / (cfg.frames - 1) : 0;
+  let eased = applyEasing(t, cfg.easing);
+  let val = cfg.start + (cfg.end - cfg.start) * eased;
+  applyBqAnimValue(cfg.param, val);
+  document.getElementById('bq-anim-status').textContent =
+    `Frame ${bqAnimFrameIdx + 1}/${cfg.frames} — ${cfg.param}=${val.toFixed(3)}`;
+  scheduleRender();
 }
 
 // ========================================================
@@ -3737,6 +3969,7 @@ function setup() {
   renderRampEditor();
   drawPalettePreview();
   wrapAllSelects();
+  wrapAllNumInputs();
 
   // bq animation param defaults
   document.getElementById('bq-anim-param').addEventListener('change', function() {
@@ -3827,6 +4060,9 @@ window.removeBitwiseLayer = removeBitwiseLayer;
 window.onLayersParamChange = onLayersParamChange;
 window.activeRandomize = activeRandomize;
 window.sparkleRandomize = sparkleRandomize;
+window.randomizeBtnDown = randomizeBtnDown;
+window.randomizeBtnUp = randomizeBtnUp;
+window.randomizeBtnCancel = randomizeBtnCancel;
 window.stepNumInput = stepNumInput;
 window.stepSelect = stepSelect;
 window.renderLayersImmediate = renderLayersImmediate;
