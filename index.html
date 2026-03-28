@@ -11,10 +11,10 @@
     /* Custom scrollbar */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #00ff8877; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #00ff88bb; }
+    ::-webkit-scrollbar-thumb { background: #00ff8855; border-radius: 3px; transition: background 0.3s; }
+    ::-webkit-scrollbar-thumb:hover { background: #00ff88aa; }
     @supports not selector(::-webkit-scrollbar) {
-      * { scrollbar-width: thin; scrollbar-color: #00ff8877 transparent; }
+      * { scrollbar-width: thin; scrollbar-color: #00ff8833 transparent; }
     }
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -58,6 +58,90 @@
     input[type="range"] {
       width: 100%; accent-color: #00ff88;
     }
+    /* Hide native number spinners across all browsers */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none; appearance: none; margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield; /* Firefox: hide native spinners */
+    }
+    /* Custom spinner wrapper */
+    .num-spin {
+      position: relative; display: inline-flex; align-items: center;
+    }
+    .num-spin input[type="number"] {
+      padding-right: 20px;
+    }
+    .num-spin .spin-btns {
+      position: absolute; right: 1px; top: 1px; bottom: 1px;
+      display: flex; flex-direction: column; width: 18px;
+      border-left: 1px solid #00ff8822; border-radius: 0 3px 3px 0;
+      overflow: hidden;
+    }
+    .num-spin .spin-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0d2a1a66, #0a1f2e66);
+      color: #00ff88; font-size: 0.55em; cursor: pointer; user-select: none;
+      border: none; padding: 0; margin: 0; line-height: 1;
+      transition: background 0.15s;
+    }
+    .num-spin .spin-btn:hover {
+      background: linear-gradient(135deg, #0d2a1acc, #0a1f2ecc);
+      color: #00e5ff;
+    }
+    .num-spin .spin-btn:first-child {
+      border-bottom: 1px solid #00ff8811;
+    }
+    /* Custom select with spin buttons */
+    .select-spin {
+      position: relative; display: flex; align-items: stretch; width: 100%;
+    }
+    .select-spin select {
+      -webkit-appearance: none; appearance: none;
+      flex: 1; min-width: 0;
+      padding-right: 38px; /* room for spin buttons + dropdown arrow */
+      background-image: none;
+    }
+    /* Spin buttons — subtle, positioned left of dropdown */
+    .select-spin .spin-btns {
+      position: absolute; right: 17px; top: 1px; bottom: 1px;
+      display: flex; flex-direction: column; width: 16px;
+      border-left: 1px solid #00ff8811;
+      overflow: hidden; z-index: 2;
+    }
+    .select-spin .spin-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      background: transparent;
+      color: #00ff8855; font-size: 0.45em; cursor: pointer; user-select: none;
+      border: none; padding: 0; margin: 0; line-height: 1;
+      transition: background 0.15s, color 0.15s;
+    }
+    .select-spin .spin-btn:hover {
+      background: linear-gradient(135deg, #0d2a1acc, #0a1f2ecc);
+      color: #00e5ff;
+    }
+    .select-spin .spin-btn:first-child {
+      border-bottom: 1px solid #00ff8811;
+    }
+    /* Dropdown arrow — prominent, right edge */
+    .select-spin .select-arrow {
+      position: absolute; right: 1px; top: 1px; bottom: 1px;
+      width: 16px; display: flex; align-items: center; justify-content: center;
+      pointer-events: none; color: #00ff88aa; font-size: 0.65em;
+      background: linear-gradient(135deg, #0d2a1a88, #0a1f2e88);
+      border-left: 1px solid #00ff8822; border-radius: 0 3px 3px 0;
+    }
+    /* Compact variant for inline selects (e.g. layer op, anim dir) */
+    .select-spin.compact select {
+      padding-right: 34px;
+    }
+    .select-spin.compact .spin-btns {
+      right: 15px; width: 16px;
+    }
+    .select-spin.compact .select-arrow {
+      width: 14px;
+    }
     .row { display: flex; gap: 10px; }
     .row .control-group { flex: 1; }
     button {
@@ -67,6 +151,50 @@
       box-shadow: 0 0 8px #00ff8808, inset 0 1px 0 #ffffff08;
     }
     button:hover { background: linear-gradient(135deg, #0d2a1acc, #0a1f2ecc); border-color: #00ff8888; color: #aaffcc; box-shadow: 0 0 12px #00ff8818, inset 0 1px 0 #ffffff10; }
+    button.primary {
+      background: linear-gradient(135deg, #00ff8818, #00e5ff12, #00ff8810);
+      border: 1px solid #00ff8855; color: #00ff88;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 10px #00ff8810, inset 0 1px 0 #ffffff0a;
+    }
+    button.primary:hover {
+      background: linear-gradient(135deg, #00ff8830, #00e5ff22, #00ff8820);
+      border-color: #00ff8888; color: #aaffcc;
+      box-shadow: 0 0 16px #00ff8820, inset 0 1px 0 #ffffff12;
+    }
+    /* Randomize button — hero emphasis */
+    button.randomize-btn {
+      background: linear-gradient(135deg, #00ff8830, #00e5ff20, #a855f71a, #00e5ff20, #00ff8830);
+      border: 1px solid #00ff8877; color: #00ff88;
+      text-shadow: 0 0 10px #00ff8855, 0 0 20px #00ff8822;
+      box-shadow: 0 0 14px #00ff8820, 0 0 28px #00e5ff10, 0 0 4px #00ff8830 inset, inset 0 1px 0 #ffffff10;
+      position: relative; overflow: hidden;
+      letter-spacing: 0.5px;
+    }
+    button.randomize-btn:hover {
+      background: linear-gradient(135deg, #00ff8845, #00e5ff35, #a855f728, #00e5ff35, #00ff8845);
+      border-color: #00ff88bb; color: #ccffdd;
+      text-shadow: 0 0 14px #00ff8888, 0 0 28px #00ff8833;
+      box-shadow: 0 0 22px #00ff8830, 0 0 44px #00e5ff18, 0 0 6px #00ff8840 inset, inset 0 1px 0 #ffffff18;
+    }
+    /* Sparkle animation */
+    .sparkle {
+      position: absolute; pointer-events: none;
+      z-index: 5; filter: drop-shadow(0 0 4px currentColor);
+    }
+    /* Randomize label pop */
+    @keyframes label-pop {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.12); }
+      60% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+    .randomize-btn .btn-label {
+      display: inline-block;
+    }
+    .randomize-btn .btn-label.pop {
+      animation: label-pop 0.35s ease-out;
+    }
     button.secondary {
       background: linear-gradient(135deg, #1a0f3088, #0d1b2a88); border: 1px solid #00e5ff33; color: #00e5ff;
       font-weight: normal; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -209,10 +337,27 @@
     .user-preset-row .preset-del:hover { background: linear-gradient(135deg, #2a0f1866, #1b0d1566); color: #ff6688; border-color: #ff336666; }
     #user-preset-list { max-height: 200px; overflow-y: auto; margin-bottom: 6px; }
     .rand-toggle {
-      float: right; font-size: 0.72em; color: #5a6a80; font-weight: normal;
+      font-size: 0.72em; color: #5a6a80; font-weight: normal;
       display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+      margin-left: auto; float: right;
     }
-    .rand-toggle input { margin: 0; cursor: pointer; accent-color: #00ff88; }
+    /* Global checkbox → radio-button style */
+    input[type="checkbox"] {
+      -webkit-appearance: none; appearance: none; margin: 0; cursor: pointer;
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid #3a4a60; background: transparent;
+      transition: all 0.2s ease; position: relative;
+      flex-shrink: 0; vertical-align: middle;
+    }
+    input[type="checkbox"]:checked {
+      border-color: #00ff88; background: transparent;
+    }
+    input[type="checkbox"]:checked::after {
+      content: ''; position: absolute; top: 2px; left: 2px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #00ff88; box-shadow: 0 0 6px #00ff8880;
+    }
+    input[type="checkbox"]:hover { border-color: #00e5ff; }
     .rand-toggle:hover { color: #00e5ff; }
     .share-box {
       width: 100%; padding: 4px 6px; font-size: 0.72em; font-family: monospace;
@@ -230,7 +375,10 @@
     <div class="mode-tabs">
       <button class="mode-tab active" data-mode="bq" onclick="switchMode('bq')">Paper (b<sub>q</sub>)</button>
       <button class="mode-tab" data-mode="formula" onclick="switchMode('formula')">Custom Formula</button>
+      <button class="mode-tab" data-mode="layers" onclick="switchMode('layers')">Bitwise Layers</button>
     </div>
+
+    <button class="primary randomize-btn" id="main-randomize-btn" onclick="sparkleRandomize(this, activeRandomize)" style="width:100%; padding:12px; font-size:1.05em; margin-bottom:10px;"><span class="btn-label">&#10024; Randomize &#10024;</span></button>
 
     <!-- ==================== USER PRESETS ==================== -->
     <details class="collapsible">
@@ -238,7 +386,7 @@
     <div id="user-preset-list"></div>
     <div style="display:flex; gap:4px; margin-bottom:6px;">
       <input type="text" id="preset-name-input" placeholder="Preset name..." style="flex:1; padding:4px 6px; font-size:0.8em;">
-      <button onclick="saveUserPreset()" style="padding:4px 10px; font-size:0.8em; margin:0;">Save</button>
+      <button class="primary" onclick="saveUserPreset()" style="padding:4px 10px; font-size:0.8em; margin:0;">Save</button>
     </div>
     <div style="display:flex; gap:4px; margin-bottom:6px;">
       <button class="secondary" onclick="copyPresetString()" style="flex:1; padding:4px 8px; font-size:0.75em; margin:0;">Copy Share String</button>
@@ -268,10 +416,6 @@
         <button onclick="loadPreset('fig4b')">Fig.4b</button>
         <button onclick="loadPreset('fig4c')">Fig.4c</button>
         <button onclick="loadPreset('fig4d')">Fig.4d</button>
-      </div>
-
-      <div style="margin-top: 14px;">
-        <button onclick="randomize()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#00ff8825,#00e5ff20); color:#00ff88; border:1px solid #00ff8844; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">Randomize</button>
       </div>
       </details>
 
@@ -335,6 +479,10 @@
           <option value="turbo">Turbo</option>
           <option value="grayscale">Grayscale</option>
           <option value="aurora">Aurora</option>
+          <option value="cividis">Cividis</option>
+          <option value="coolwarm">Coolwarm</option>
+          <option value="spectral">Spectral</option>
+          <option value="synthwave">Synthwave</option>
           <option value="custom">Custom Ramp</option>
         </select>
         <canvas class="ramp-preview" id="palette-preview" width="330" height="20"></canvas>
@@ -380,11 +528,11 @@
       <div class="row">
         <div class="control-group">
           <label>Frames</label>
-          <input type="number" id="bq-anim-frames" value="30" min="2" max="600">
+          <input type="number" id="bq-anim-frames" value="90" min="2" max="600">
         </div>
         <div class="control-group">
           <label>FPS</label>
-          <input type="number" id="bq-anim-fps" value="15" min="1" max="60">
+          <input type="number" id="bq-anim-fps" value="30" min="1" max="60">
         </div>
       </div>
       <div class="control-group">
@@ -424,10 +572,6 @@
         <button onclick="loadFormulaPreset('weave')">Weave</button>
         <button onclick="loadFormulaPreset('interference')">Interference</button>
         <button onclick="loadFormulaPreset('dockrey')">Dockrey</button>
-      </div>
-
-      <div style="margin-top: 10px;">
-        <button onclick="randomFormula()" style="width:100%; padding:10px; font-size:1em; background:linear-gradient(135deg,#00ff8825,#00e5ff20); color:#00ff88; border:1px solid #00ff8844; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);">Randomize Formula</button>
       </div>
       </details>
 
@@ -560,8 +704,16 @@
           <option value="raw_magma">Raw &rarr; Magma</option>
           <option value="raw_turbo">Raw &rarr; Turbo</option>
           <option value="raw_aurora">Raw &rarr; Aurora</option>
+          <option value="raw_cividis">Raw &rarr; Cividis</option>
+          <option value="raw_coolwarm">Raw &rarr; Coolwarm</option>
+          <option value="raw_spectral">Raw &rarr; Spectral</option>
+          <option value="raw_synthwave">Raw &rarr; Synthwave</option>
           <option value="mod_rainbow">Mod 256 Rainbow</option>
+          <option value="hsl_wheel">HSL Hue Wheel</option>
+          <option value="phase">Phase (cyclic)</option>
           <option value="bits_rgb">Low 3 bits &rarr; RGB</option>
+          <option value="bits_rgb_plus">3-bit RGB+CMY</option>
+          <option value="popcount_heat">Bit-plane Heat</option>
         </select>
       </div>
       </details>
@@ -587,6 +739,138 @@
         </select>
       </div>
       <div class="hint" style="margin-top:4px;">Speed = steps per frame. Use fractional values (e.g. 0.5) for slower playback.</div>
+      </details>
+    </div>
+
+    <!-- ==================== BITWISE LAYERS MODE ==================== -->
+    <div id="panel-layers" class="mode-panel">
+      <div class="info-box" style="margin-bottom:10px; font-size:0.82em; color:#a0c4ff;">
+        Chain bitwise operations in layers. Each layer applies an operator with shift &amp; scale. Optional feedback iterates the result.
+      </div>
+
+      <!-- Built-in Presets -->
+      <details class="collapsible" open>
+        <summary>Presets</summary>
+        <div class="preset-grid">
+          <button class="preset-btn" onclick="loadLayersPreset('xor_cascade')">XOR Cascade</button>
+          <button class="preset-btn" onclick="loadLayersPreset('and_or_weave')">AND/OR Weave</button>
+          <button class="preset-btn" onclick="loadLayersPreset('shift_stack')">Shift Stack</button>
+          <button class="preset-btn" onclick="loadLayersPreset('nand_lattice')">NAND Lattice</button>
+          <button class="preset-btn" onclick="loadLayersPreset('feedback_spiral')">Feedback Spiral</button>
+          <button class="preset-btn" onclick="loadLayersPreset('deep_feedback')">Deep Feedback</button>
+          <button class="preset-btn" onclick="loadLayersPreset('bit_erosion')">Bit Erosion</button>
+          <button class="preset-btn" onclick="loadLayersPreset('xnor_interference')">XNOR Interference</button>
+        </div>
+      </details>
+
+      <!-- Layer Stack -->
+      <details class="collapsible" open>
+        <summary>Layer Stack <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-layers" checked> rand</label></summary>
+        <div id="layers-container"></div>
+        <button id="add-layer-btn" onclick="addBitwiseLayer()" style="width:100%; margin-top:6px;">+ Add Layer</button>
+      </details>
+
+      <!-- Combine Mode -->
+      <details class="collapsible" open>
+        <summary>Layer Combine <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-combine" checked> rand</label></summary>
+        <div class="control-group">
+          <label>Combine method</label>
+          <select id="layers-combine" onchange="onLayersParamChange()">
+            <option value="chain">Chain (sequential ops)</option>
+            <option value="add">Additive blend</option>
+            <option value="xor">XOR all layers</option>
+            <option value="or">OR all layers</option>
+            <option value="and">AND all layers</option>
+          </select>
+        </div>
+      </details>
+
+      <!-- Feedback -->
+      <details class="collapsible">
+        <summary>Feedback <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-feedback" checked> rand</label></summary>
+        <div class="control-group">
+          <label><input type="checkbox" id="feedback-enable"> Enable feedback loop</label>
+        </div>
+        <div class="control-group">
+          <label>Iterations (1-16)</label>
+          <input type="number" id="feedback-iterations" value="3" min="1" max="16">
+        </div>
+        <div class="control-group">
+          <label>Feedback operator</label>
+          <select id="feedback-op">
+            <option value="XOR">XOR</option>
+            <option value="AND">AND</option>
+            <option value="OR">OR</option>
+            <option value="NAND">NAND</option>
+            <option value="NOR">NOR</option>
+            <option value="XNOR">XNOR</option>
+            <option value="ADD">ADD</option>
+            <option value="SUB">SUB</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Feedback source</label>
+          <select id="feedback-source">
+            <option value="x">x coordinate</option>
+            <option value="y">y coordinate</option>
+            <option value="xy">x + y</option>
+            <option value="iter">iteration index</option>
+          </select>
+        </div>
+      </details>
+
+      <!-- Color Mode -->
+      <details class="collapsible" open>
+        <summary>Color Mode <label class="rand-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rand-layerscolor" checked> rand</label></summary>
+        <div class="control-group">
+          <select id="layers-color-select" onchange="onLayersParamChange()">
+            <option value="1bit">1-bit B/W</option>
+            <option value="1bit_inv">1-bit inverted</option>
+            <option value="threshold">Threshold (blue/red)</option>
+            <option value="raw_viridis" selected>Viridis (normalized)</option>
+            <option value="raw_magma">Magma (normalized)</option>
+            <option value="raw_turbo">Turbo (normalized)</option>
+            <option value="raw_aurora">Aurora (normalized)</option>
+            <option value="raw_cividis">Cividis (normalized)</option>
+            <option value="raw_coolwarm">Coolwarm (normalized)</option>
+            <option value="raw_spectral">Spectral (normalized)</option>
+            <option value="raw_synthwave">Synthwave (normalized)</option>
+            <option value="mod_rainbow">Mod-256 rainbow</option>
+            <option value="hsl_wheel">HSL Hue Wheel</option>
+            <option value="phase">Phase (cyclic)</option>
+            <option value="bits_rgb">Bits → RGB</option>
+            <option value="bits_rgb_plus">3-bit RGB+CMY</option>
+            <option value="popcount_heat">Bit-plane Heat</option>
+          </select>
+        </div>
+      </details>
+
+      <!-- Animation -->
+      <details class="collapsible">
+      <summary>Animation</summary>
+      <div class="control-group">
+        <label>t = <span id="layers-t-label">0</span></label>
+        <input type="range" id="layers-t-slider" min="-2000" max="2000" value="0" step="1"
+          oninput="currentT=parseFloat(this.value); document.getElementById('layers-t-label').textContent=this.value; if(!animating) renderLayersImmediate();">
+      </div>
+      <div class="control-group">
+        <label>Animate parameter</label>
+        <select id="layers-anim-target">
+          <option value="t">t (time)</option>
+          <option value="shift">Layer shifts</option>
+          <option value="scale">Layer scales</option>
+        </select>
+      </div>
+      <div class="anim-row">
+        <button id="layers-anim-play-btn" onclick="toggleAnimation()">&#9654; Play</button>
+        <label style="font-size:0.8em; color:#a0c4ff;">Speed:</label>
+        <input type="number" id="layers-anim-speed" value="1" min="-20" max="20" step="0.1" style="width:60px;">
+        <label style="font-size:0.8em; color:#a0c4ff;">Dir:</label>
+        <select id="layers-anim-dir" style="width:60px; font-size:0.8em;">
+          <option value="1">+</option>
+          <option value="-1">&minus;</option>
+        </select>
+      </div>
       </details>
     </div>
 
@@ -621,17 +905,17 @@
     <div class="row">
       <div class="control-group">
         <label>Export frames</label>
-        <input type="number" id="export-frames" value="30" min="2" max="600">
+        <input type="number" id="export-frames" value="90" min="2" max="600">
       </div>
       <div class="control-group">
         <label>Export FPS</label>
-        <input type="number" id="export-fps" value="15" min="1" max="60">
+        <input type="number" id="export-fps" value="30" min="1" max="60">
       </div>
     </div>
     <div style="display:flex; flex-wrap:wrap; gap:6px;">
-      <button class="secondary" onclick="exportImage()">Save PNG</button>
-      <button class="secondary" onclick="exportGIF()">Export GIF</button>
-      <button class="secondary" onclick="exportMP4()">Export MP4</button>
+      <button class="primary" onclick="exportImage()">Save PNG</button>
+      <button class="primary" onclick="exportGIF()">Export GIF</button>
+      <button class="primary" onclick="exportMP4()">Export MP4</button>
       <button class="secondary" onclick="bqAnimCancelFlag=true" id="export-cancel-btn" style="display:none; background:linear-gradient(135deg, #2a0f1888, #1b0d1588); color:#ff6688; border:1px solid #ff336655; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); box-shadow: 0 0 8px #ff336608, inset 0 1px 0 #ffffff08;">Cancel</button>
     </div>
     <div class="hint" style="margin-top:4px;">GIF/MP4 uses animation settings from the active mode.</div>
@@ -734,7 +1018,11 @@ const PALETTE_STOPS = {
   plasma:    [[13,8,135],[126,3,168],[204,71,120],[248,149,64],[240,249,33]],
   turbo:     [[48,18,59],[70,130,180],[40,200,130],[230,220,50],[122,4,3]],
   grayscale: [[0,0,0],[64,64,64],[128,128,128],[192,192,192],[255,255,255]],
-  aurora:    [[20,0,60],[60,10,120],[80,30,160],[40,120,160],[30,200,180],[100,240,150]]
+  aurora:    [[20,0,60],[60,10,120],[80,30,160],[40,120,160],[30,200,180],[100,240,150]],
+  cividis:   [[0,32,77],[50,78,110],[115,133,121],[182,188,115],[255,234,70]],
+  coolwarm:  [[59,76,192],[116,140,210],[180,203,228],[221,221,221],[228,185,170],[209,126,107],[180,4,38]],
+  spectral:  [[158,1,66],[213,62,79],[244,109,67],[253,174,97],[254,224,139],[230,245,152],[171,221,164],[102,194,165],[50,136,189],[94,79,162]],
+  synthwave: [[10,0,30],[40,0,80],[120,0,180],[200,0,200],[255,50,150],[0,220,255],[180,255,255]]
 };
 
 // Custom ramp: array of {pos: 0..1, color: [r,g,b]}
@@ -794,6 +1082,60 @@ function paletteLUTColor(lut, t) {
   if (i < 0) i = 0; else if (i > 255) i = 255;
   let off = i * 3;
   return [lut[off], lut[off + 1], lut[off + 2]];
+}
+
+// HSL to RGB conversion (h, s, l all in 0..1)
+function hslToRgb(h, s, l) {
+  h = ((h % 1) + 1) % 1; // wrap to 0..1
+  let c = (1 - Math.abs(2 * l - 1)) * s;
+  let x = c * (1 - Math.abs((h * 6) % 2 - 1));
+  let m = l - c / 2;
+  let r, g, b;
+  if (h < 1/6)      { r = c; g = x; b = 0; }
+  else if (h < 2/6) { r = x; g = c; b = 0; }
+  else if (h < 3/6) { r = 0; g = c; b = x; }
+  else if (h < 4/6) { r = 0; g = x; b = c; }
+  else if (h < 5/6) { r = x; g = 0; b = c; }
+  else              { r = c; g = 0; b = x; }
+  return [((r + m) * 255 + 0.5) | 0, ((g + m) * 255 + 0.5) | 0, ((b + m) * 255 + 0.5) | 0];
+}
+
+// Bake a 256-entry cyclic phase colormap (smooth hue cycling with varying luminance)
+function bakePhaseLUT() {
+  let lut = new Uint8Array(256 * 3);
+  for (let i = 0; i < 256; i++) {
+    let t = i / 256;
+    // Two full hue rotations with sinusoidal luminance modulation
+    let h = (t * 2) % 1;
+    let l = 0.45 + 0.15 * Math.sin(t * Math.PI * 4);
+    let rgb = hslToRgb(h, 0.85, l);
+    lut[i * 3] = rgb[0]; lut[i * 3 + 1] = rgb[1]; lut[i * 3 + 2] = rgb[2];
+  }
+  return lut;
+}
+
+// Popcount (number of set bits) for 32-bit integer
+function popcount32(v) {
+  v = v - ((v >> 1) & 0x55555555);
+  v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+  return (((v + (v >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
+}
+
+// Bake a 32-entry LUT for popcount heat (0-31 set bits → color)
+function bakePopcountLUT() {
+  let lut = new Uint8Array(32 * 3);
+  // Black → blue → cyan → green → yellow → red → white
+  let stops = [[0,0,0],[0,0,180],[0,140,200],[0,200,80],[200,220,0],[255,80,0],[255,255,255]];
+  for (let i = 0; i < 32; i++) {
+    let t = i / 31;
+    let idx = t * (stops.length - 1);
+    let si = Math.min(Math.floor(idx), stops.length - 2);
+    let f = idx - si;
+    lut[i * 3]     = (stops[si][0] + (stops[si+1][0] - stops[si][0]) * f) | 0;
+    lut[i * 3 + 1] = (stops[si][1] + (stops[si+1][1] - stops[si][1]) * f) | 0;
+    lut[i * 3 + 2] = (stops[si][2] + (stops[si+1][2] - stops[si][2]) * f) | 0;
+  }
+  return lut;
 }
 
 function drawPalettePreview() {
@@ -972,6 +1314,15 @@ let animSpeed = 1;
 let animDir = 1;
 let formulaColorMode = '1bit';
 
+// Bitwise Layers mode
+let bitwiseLayers = [
+  { op: 'XOR', shift: 0, scale: 1 },
+  { op: 'AND', shift: 2, scale: 2 },
+];
+let layersCombine = 'chain';
+let layersFeedback = { enabled: false, iterations: 3, op: 'XOR', source: 'x' };
+let layersColorMode = 'raw_viridis';
+
 // ========================================================
 // FORMULA COMPILER
 // ========================================================
@@ -1021,7 +1372,7 @@ function randomFormula() {
   }
 
   if (document.getElementById('rand-colormode').checked) {
-    let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'raw_aurora', 'mod_rainbow', 'bits_rgb'];
+    let colorModes = ['1bit', '1bit_inv', 'raw_viridis', 'raw_turbo', 'raw_aurora', 'raw_cividis', 'raw_coolwarm', 'raw_spectral', 'raw_synthwave', 'mod_rainbow', 'hsl_wheel', 'phase', 'bits_rgb', 'bits_rgb_plus', 'popcount_heat'];
     let colorMode = colorModes[Math.floor(Math.random() * colorModes.length)];
     document.getElementById('formula-color-select').value = colorMode;
     formulaColorMode = colorMode;
@@ -1209,8 +1560,10 @@ function renderFormulaImmediate() {
   let values = needsNorm ? new Int32Array(resW * resH) : null;
   let minVal = Infinity, maxVal = -Infinity;
 
-  // Bake a turbo LUT for mod_rainbow mode
+  // Bake LUTs for indexed color modes
   let turboLUT = (colorMode === 'mod_rainbow') ? bakePaletteLUT('turbo') : null;
+  let phaseLUT = (colorMode === 'phase') ? bakePhaseLUT() : null;
+  let popcountLUT = (colorMode === 'popcount_heat') ? bakePopcountLUT() : null;
 
   for (let j = 0; j < resH; j++) {
     let yc = (j / resH * vmax) | 0;
@@ -1238,11 +1591,31 @@ function renderFormulaImmediate() {
           let off = (val & 0xFF) * 3;
           r = turboLUT[off]; g = turboLUT[off+1]; b = turboLUT[off+2]; break;
         }
+        case 'hsl_wheel': {
+          let rgb = hslToRgb(((val & 0xFF) / 256), 0.9, 0.55);
+          r = rgb[0]; g = rgb[1]; b = rgb[2]; break;
+        }
+        case 'phase': {
+          let off = (val & 0xFF) * 3;
+          r = phaseLUT[off]; g = phaseLUT[off+1]; b = phaseLUT[off+2]; break;
+        }
         case 'bits_rgb':
           r = (val & 1) ? 255 : 0;
           g = (val & 2) ? 255 : 0;
           b = (val & 4) ? 255 : 0;
           break;
+        case 'bits_rgb_plus':
+          r = ((val & 1) ? 255 : 0) | ((val & 8) ? 0 : 0);
+          g = ((val & 2) ? 255 : 0) | ((val & 16) ? 0 : 0);
+          b = ((val & 4) ? 255 : 0) | ((val & 32) ? 0 : 0);
+          r = Math.min(255, ((val & 1) ? 255 : 0) + ((val & 16) ? 255 : 0) + ((val & 32) ? 255 : 0));
+          g = Math.min(255, ((val & 2) ? 255 : 0) + ((val & 8) ? 255 : 0) + ((val & 32) ? 255 : 0));
+          b = Math.min(255, ((val & 4) ? 255 : 0) + ((val & 8) ? 255 : 0) + ((val & 16) ? 255 : 0));
+          break;
+        case 'popcount_heat': {
+          let off = (popcount32(val) & 0x1F) * 3;
+          r = popcountLUT[off]; g = popcountLUT[off+1]; b = popcountLUT[off+2]; break;
+        }
         default: r = g = b = (val & 1) ? 255 : 0;
       }
 
@@ -1504,8 +1877,623 @@ function renderFormulaMode() {
   status.textContent = `Formula rendered in ${elapsed}s. t=${currentT}`;
 }
 
+// ========================================================
+// BITWISE LAYERS MODE
+// ========================================================
+
+const LAYERS_PRESETS = {
+  xor_cascade: {
+    layers: [
+      { op: 'XOR', shift: 0, scale: 1 },
+      { op: 'XOR', shift: 3, scale: 2 },
+      { op: 'XOR', shift: 6, scale: 4 },
+    ],
+    combine: 'chain', feedback: { enabled: false, iterations: 3, op: 'XOR', source: 'x' },
+    color: 'mod_rainbow', t: 0, umax: 512, vmax: 512
+  },
+  and_or_weave: {
+    layers: [
+      { op: 'AND', shift: 0, scale: 1 },
+      { op: 'OR', shift: 1, scale: 1 },
+      { op: 'AND', shift: 2, scale: 3 },
+    ],
+    combine: 'chain', feedback: { enabled: false, iterations: 3, op: 'XOR', source: 'x' },
+    color: 'raw_viridis', t: 0, umax: 256, vmax: 256
+  },
+  shift_stack: {
+    layers: [
+      { op: 'XOR', shift: 0, scale: 1 },
+      { op: 'XOR', shift: 4, scale: 1 },
+      { op: 'OR', shift: 8, scale: 1 },
+    ],
+    combine: 'add', feedback: { enabled: false, iterations: 3, op: 'XOR', source: 'x' },
+    color: 'raw_turbo', t: 0, umax: 512, vmax: 512
+  },
+  nand_lattice: {
+    layers: [
+      { op: 'NAND', shift: 0, scale: 1 },
+      { op: 'NAND', shift: 2, scale: 2 },
+    ],
+    combine: 'chain', feedback: { enabled: false, iterations: 3, op: 'XOR', source: 'x' },
+    color: 'raw_aurora', t: 0, umax: 512, vmax: 512
+  },
+  feedback_spiral: {
+    layers: [
+      { op: 'XOR', shift: 0, scale: 1 },
+      { op: 'AND', shift: 1, scale: 1 },
+    ],
+    combine: 'chain', feedback: { enabled: true, iterations: 5, op: 'XOR', source: 'xy' },
+    color: 'mod_rainbow', t: 0, umax: 512, vmax: 512
+  },
+  deep_feedback: {
+    layers: [
+      { op: 'XOR', shift: 0, scale: 1 },
+    ],
+    combine: 'chain', feedback: { enabled: true, iterations: 12, op: 'XOR', source: 'iter' },
+    color: 'raw_magma', t: 0, umax: 256, vmax: 256
+  },
+  bit_erosion: {
+    layers: [
+      { op: 'AND', shift: 0, scale: 1 },
+      { op: 'XOR', shift: 1, scale: 1 },
+      { op: 'AND', shift: 3, scale: 2 },
+    ],
+    combine: 'and', feedback: { enabled: true, iterations: 3, op: 'AND', source: 'x' },
+    color: '1bit', t: 0, umax: 512, vmax: 512
+  },
+  xnor_interference: {
+    layers: [
+      { op: 'XNOR', shift: 0, scale: 1 },
+      { op: 'XNOR', shift: 3, scale: 2 },
+      { op: 'XOR', shift: 1, scale: 1 },
+    ],
+    combine: 'xor', feedback: { enabled: false, iterations: 3, op: 'XOR', source: 'x' },
+    color: 'raw_turbo', t: 0, umax: 512, vmax: 512
+  }
+};
+
+function evalBitwiseOp(op, a, b) {
+  switch (op) {
+    case 'XOR':  return (a ^ b) | 0;
+    case 'AND':  return (a & b) | 0;
+    case 'OR':   return (a | b) | 0;
+    case 'NAND': return (~(a & b)) | 0;
+    case 'NOR':  return (~(a | b)) | 0;
+    case 'XNOR': return (~(a ^ b)) | 0;
+    case 'ADD':  return (a + b) | 0;
+    case 'SUB':  return (a - b) | 0;
+    case 'MUL':  return Math.imul(a, b);
+    default:     return (a ^ b) | 0;
+  }
+}
+
+function renderLayersImmediate() {
+  let resW = currentResW, resH = currentResH;
+  let umax = currentUmax, vmax = currentVmax;
+  let t = currentT;
+  let colorMode = layersColorMode;
+  let layers = bitwiseLayers;
+  let combine = layersCombine;
+  let fb = layersFeedback;
+
+  if (width !== resW || height !== resH) resizeCanvas(resW, resH);
+
+  loadPixels();
+  let pxArr = pixels;
+
+  let needsNorm = colorMode.startsWith('raw_');
+  let values = needsNorm ? new Int32Array(resW * resH) : null;
+  let minVal = Infinity, maxVal = -Infinity;
+  let turboLUT = (colorMode === 'mod_rainbow') ? bakePaletteLUT('turbo') : null;
+  let phaseLUT = (colorMode === 'phase') ? bakePhaseLUT() : null;
+  let popcountLUT = (colorMode === 'popcount_heat') ? bakePopcountLUT() : null;
+
+  for (let j = 0; j < resH; j++) {
+    let yc = (j / resH * vmax) | 0;
+    let rowOff = j * resW;
+    for (let i = 0; i < resW; i++) {
+      let xc = (i / resW * umax) | 0;
+
+      // Compute each layer's value
+      let layerVals = new Array(layers.length);
+      for (let li = 0; li < layers.length; li++) {
+        let L = layers[li];
+        let effectiveShift = (L.shift + Math.floor(t * 0.1 * li)) | 0;
+        let sv = effectiveShift >= 0
+          ? evalBitwiseOp(L.op, xc >> effectiveShift, yc >> effectiveShift)
+          : evalBitwiseOp(L.op, xc << -effectiveShift, yc << -effectiveShift);
+        layerVals[li] = (sv * L.scale) | 0;
+      }
+
+      // Combine layers
+      let val;
+      if (combine === 'chain') {
+        val = layerVals[0];
+        for (let li = 1; li < layers.length; li++) {
+          val = evalBitwiseOp(layers[li].op, val, layerVals[li]);
+        }
+      } else if (combine === 'add') {
+        val = 0;
+        for (let li = 0; li < layers.length; li++) val = (val + layerVals[li]) | 0;
+      } else if (combine === 'xor') {
+        val = 0;
+        for (let li = 0; li < layers.length; li++) val = (val ^ layerVals[li]) | 0;
+      } else if (combine === 'or') {
+        val = 0;
+        for (let li = 0; li < layers.length; li++) val = (val | layerVals[li]) | 0;
+      } else if (combine === 'and') {
+        val = -1; // all bits set
+        for (let li = 0; li < layers.length; li++) val = (val & layerVals[li]) | 0;
+      }
+
+      // Feedback loop
+      if (fb.enabled && fb.iterations > 0) {
+        for (let fi = 1; fi <= fb.iterations; fi++) {
+          let feedSrc;
+          switch (fb.source) {
+            case 'x': feedSrc = (xc + fi) | 0; break;
+            case 'y': feedSrc = (yc + fi) | 0; break;
+            case 'xy': feedSrc = (xc + yc + fi) | 0; break;
+            case 'iter': feedSrc = fi; break;
+            default: feedSrc = (xc + fi) | 0;
+          }
+          val = evalBitwiseOp(fb.op, val, feedSrc);
+        }
+      }
+
+      if (needsNorm) {
+        values[rowOff + i] = val;
+        if (val < minVal) minVal = val;
+        if (val > maxVal) maxVal = val;
+        continue;
+      }
+
+      let r, g, b;
+      switch (colorMode) {
+        case '1bit':     r = g = b = (val & 1) ? 0 : 255; break;
+        case '1bit_inv': r = g = b = (val & 1) ? 255 : 0; break;
+        case 'threshold':
+          if (val & 1) { r = 255; g = 0; b = 0; } else { r = 0; g = 0; b = 255; }
+          break;
+        case 'mod_rainbow': {
+          let off = (val & 0xFF) * 3;
+          r = turboLUT[off]; g = turboLUT[off+1]; b = turboLUT[off+2]; break;
+        }
+        case 'hsl_wheel': {
+          let rgb = hslToRgb(((val & 0xFF) / 256), 0.9, 0.55);
+          r = rgb[0]; g = rgb[1]; b = rgb[2]; break;
+        }
+        case 'phase': {
+          let off = (val & 0xFF) * 3;
+          r = phaseLUT[off]; g = phaseLUT[off+1]; b = phaseLUT[off+2]; break;
+        }
+        case 'bits_rgb':
+          r = (val & 1) ? 255 : 0;
+          g = (val & 2) ? 255 : 0;
+          b = (val & 4) ? 255 : 0;
+          break;
+        case 'bits_rgb_plus':
+          r = Math.min(255, ((val & 1) ? 255 : 0) + ((val & 16) ? 255 : 0) + ((val & 32) ? 255 : 0));
+          g = Math.min(255, ((val & 2) ? 255 : 0) + ((val & 8) ? 255 : 0) + ((val & 32) ? 255 : 0));
+          b = Math.min(255, ((val & 4) ? 255 : 0) + ((val & 8) ? 255 : 0) + ((val & 16) ? 255 : 0));
+          break;
+        case 'popcount_heat': {
+          let off = (popcount32(val) & 0x1F) * 3;
+          r = popcountLUT[off]; g = popcountLUT[off+1]; b = popcountLUT[off+2]; break;
+        }
+        default: r = g = b = (val & 1) ? 255 : 0;
+      }
+
+      let idx = (rowOff + i) << 2;
+      pxArr[idx] = r; pxArr[idx+1] = g; pxArr[idx+2] = b; pxArr[idx+3] = 255;
+    }
+  }
+
+  if (needsNorm && values) {
+    let range = maxVal - minVal || 1;
+    let invRange = 1 / range;
+    let palLUT = bakePaletteLUT(colorMode.replace('raw_', ''));
+    for (let j = 0; j < resH; j++) {
+      let rowOff = j * resW;
+      for (let i = 0; i < resW; i++) {
+        let ti = ((values[rowOff + i] - minVal) * invRange * 255 + 0.5) | 0;
+        if (ti < 0) ti = 0; else if (ti > 255) ti = 255;
+        let off = ti * 3;
+        let idx = (rowOff + i) << 2;
+        pxArr[idx] = palLUT[off]; pxArr[idx+1] = palLUT[off+1]; pxArr[idx+2] = palLUT[off+2]; pxArr[idx+3] = 255;
+      }
+    }
+  }
+
+  updatePixels();
+}
+
+function renderLayersMode() {
+  let status = document.getElementById('status');
+  layersColorMode = document.getElementById('layers-color-select').value;
+  layersCombine = document.getElementById('layers-combine').value;
+  readLayersFromUI();
+  readFeedbackFromUI();
+  currentUmax = parseInt(document.getElementById('umax-input').value) || 512;
+  currentVmax = parseInt(document.getElementById('vmax-input').value) || 512;
+
+  let startTime = performance.now();
+  renderLayersImmediate();
+  let elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+  status.textContent = `Layers rendered in ${elapsed}s. t=${currentT}`;
+}
+
+function readLayersFromUI() {
+  let rows = document.querySelectorAll('.layer-row');
+  bitwiseLayers = [];
+  rows.forEach((row, i) => {
+    bitwiseLayers.push({
+      op: row.querySelector('.layer-op').value,
+      shift: parseInt(row.querySelector('.layer-shift').value) || 0,
+      scale: parseInt(row.querySelector('.layer-scale').value) || 1,
+    });
+  });
+  if (bitwiseLayers.length === 0) {
+    bitwiseLayers = [{ op: 'XOR', shift: 0, scale: 1 }];
+  }
+}
+
+function readFeedbackFromUI() {
+  layersFeedback = {
+    enabled: document.getElementById('feedback-enable').checked,
+    iterations: parseInt(document.getElementById('feedback-iterations').value) || 3,
+    op: document.getElementById('feedback-op').value,
+    source: document.getElementById('feedback-source').value,
+  };
+}
+
+function renderLayerStackUI() {
+  let container = document.getElementById('layers-container');
+  let ops = ['XOR','AND','OR','NAND','NOR','XNOR','ADD','SUB','MUL'];
+  let canRemove = bitwiseLayers.length > 1;
+  container.innerHTML = bitwiseLayers.map((L, i) => `
+    <div class="layer-row" style="display:flex; gap:4px; align-items:center; margin-bottom:4px; padding:4px; background:rgba(0,255,136,0.05); border-radius:6px; border:1px solid rgba(0,255,136,0.15);">
+      <span style="color:#00ff88; font-size:0.75em; min-width:14px;">${i+1}</span>
+      <select class="layer-op" onchange="onLayersParamChange()" style="width:62px; flex:none; font-size:0.8em; padding:4px 2px;">
+        ${ops.map(o => `<option value="${o}" ${o===L.op?'selected':''}>${o}</option>`).join('')}
+      </select>
+      <label style="font-size:0.7em; color:#a0c4ff;">shift</label>
+      <span class="num-spin"><input class="layer-shift" type="number" value="${L.shift}" min="-16" max="16" onchange="onLayersParamChange()" style="width:54px; font-size:0.8em; padding:4px 4px;"><span class="spin-btns"><button class="spin-btn" onclick="stepNumInput(this,'up')">▲</button><button class="spin-btn" onclick="stepNumInput(this,'down')">▼</button></span></span>
+      <label style="font-size:0.7em; color:#a0c4ff;">scale</label>
+      <span class="num-spin"><input class="layer-scale" type="number" value="${L.scale}" min="1" max="32" onchange="onLayersParamChange()" style="width:54px; font-size:0.8em; padding:4px 4px;"><span class="spin-btns"><button class="spin-btn" onclick="stepNumInput(this,'up')">▲</button><button class="spin-btn" onclick="stepNumInput(this,'down')">▼</button></span></span>
+      ${canRemove ? `<button onclick="removeBitwiseLayer(${i})" style="font-size:0.7em; padding:2px 5px; background:rgba(255,0,80,0.3); border:1px solid rgba(255,0,80,0.5); color:#ff5080; border-radius:4px; cursor:pointer;">&times;</button>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('add-layer-btn').disabled = bitwiseLayers.length >= 4;
+  wrapLayerSelects();
+}
+
+function addBitwiseLayer() {
+  if (bitwiseLayers.length >= 4) return;
+  let ops = ['XOR','AND','OR','NAND','NOR','XNOR'];
+  bitwiseLayers.push({ op: ops[Math.floor(Math.random()*ops.length)], shift: Math.floor(Math.random()*5), scale: 1 });
+  renderLayerStackUI();
+  onLayersParamChange();
+}
+
+function removeBitwiseLayer(index) {
+  if (bitwiseLayers.length <= 1) return;
+  bitwiseLayers.splice(index, 1);
+  renderLayerStackUI();
+  onLayersParamChange();
+}
+
+function onLayersParamChange() {
+  if (currentMode === 'layers') scheduleRender();
+}
+
+function activeRandomize() {
+  if (currentMode === 'formula') randomFormula();
+  else if (currentMode === 'layers') randomLayers();
+  else randomize();
+}
+
+function sparkleRandomize(btn, fn) {
+  let colors = ['#00ff88', '#00e5ff', '#a855f7', '#ffee55', '#ff66aa', '#88ffcc', '#55aaff'];
+  let stars = ['✦', '✧', '✴', '⋆', '✶', '·', '✸', '⊹'];
+  let count = 12 + Math.floor(Math.random() * 5);
+  for (let i = 0; i < count; i++) {
+    let spark = document.createElement('span');
+    spark.className = 'sparkle';
+    spark.textContent = stars[Math.floor(Math.random() * stars.length)];
+    let startX = 5 + Math.random() * 90;
+    let startY = 10 + Math.random() * 80;
+    let driftX = (Math.random() - 0.5) * 40;
+    let driftY = (Math.random() - 0.5) * 30;
+    let rot = (Math.random() - 0.5) * 360;
+    let peakScale = 0.6 + Math.random() * 1.0;
+    let dur = 0.3 + Math.random() * 0.45;
+    let size = i < 5 ? (0.65 + Math.random() * 0.7) : (0.35 + Math.random() * 0.4);
+
+    spark.style.left = startX + '%';
+    spark.style.top = startY + '%';
+    spark.style.color = colors[Math.floor(Math.random() * colors.length)];
+    spark.style.fontSize = size + 'em';
+    spark.style.opacity = (0.3 + Math.random() * 0.7);
+    spark.style.animationDelay = (Math.random() * 0.25) + 's';
+
+    let name = 'sparkle_' + Math.random().toString(36).slice(2, 8);
+    let keyframes = `@keyframes ${name} {
+      0% { transform: translate(-50%,-50%) translate(0,0) scale(0) rotate(0deg); }
+      40% { transform: translate(-50%,-50%) translate(${driftX*0.4}px,${driftY*0.4}px) scale(${peakScale}) rotate(${rot*0.5}deg); }
+      100% { transform: translate(-50%,-50%) translate(${driftX}px,${driftY}px) scale(0) rotate(${rot}deg); opacity: 0; }
+    }`;
+    let style = document.createElement('style');
+    style.textContent = keyframes;
+    document.head.appendChild(style);
+    spark.style.animation = `${name} ${dur}s ease-out forwards`;
+
+    btn.appendChild(spark);
+    spark.addEventListener('animationend', () => { spark.remove(); style.remove(); });
+  }
+  let lbl = btn.querySelector('.btn-label');
+  if (lbl) { lbl.classList.remove('pop'); void lbl.offsetWidth; lbl.classList.add('pop'); }
+  fn();
+}
+
+function stepNumInput(btn, dir) {
+  let input = btn.closest('.num-spin').querySelector('input[type="number"]');
+  if (!input) return;
+  let step = parseFloat(input.step) || 1;
+  let val = parseFloat(input.value) || 0;
+  let min = input.min !== '' ? parseFloat(input.min) : -Infinity;
+  let max = input.max !== '' ? parseFloat(input.max) : Infinity;
+  val += dir === 'up' ? step : -step;
+  if (val < min) val = min;
+  if (val > max) val = max;
+  input.value = val;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function stepSelect(btn, dir) {
+  let wrapper = btn.closest('.select-spin');
+  if (!wrapper) return;
+  let sel = wrapper.querySelector('select');
+  if (!sel) return;
+  let idx = sel.selectedIndex;
+  if (dir === 'up') {
+    idx = idx > 0 ? idx - 1 : sel.options.length - 1;
+  } else {
+    idx = idx < sel.options.length - 1 ? idx + 1 : 0;
+  }
+  sel.selectedIndex = idx;
+  sel.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+function wrapAllSelects() {
+  let sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  sidebar.querySelectorAll('select').forEach(sel => {
+    // Skip if already wrapped
+    if (sel.parentElement.classList.contains('select-spin')) return;
+    // Skip selects inside dynamically-generated content (layer rows handle their own)
+    if (sel.closest('#layers-container')) return;
+
+    let wrapper = document.createElement('span');
+    wrapper.className = 'select-spin';
+    // Use compact variant for narrow inline selects
+    if (sel.style.width && parseInt(sel.style.width) < 80) {
+      wrapper.classList.add('compact');
+    }
+
+    sel.parentNode.insertBefore(wrapper, sel);
+    wrapper.appendChild(sel);
+
+    // Add dropdown arrow indicator
+    let arrow = document.createElement('span');
+    arrow.className = 'select-arrow';
+    arrow.textContent = '▼';
+    wrapper.appendChild(arrow);
+
+    // Add spin buttons
+    let btns = document.createElement('span');
+    btns.className = 'spin-btns';
+    btns.innerHTML = '<button class="spin-btn" onclick="stepSelect(this,\'up\')" tabindex="-1">▲</button><button class="spin-btn" onclick="stepSelect(this,\'down\')" tabindex="-1">▼</button>';
+    wrapper.appendChild(btns);
+  });
+}
+
+function wrapLayerSelects() {
+  let container = document.getElementById('layers-container');
+  if (!container) return;
+  container.querySelectorAll('select.layer-op').forEach(sel => {
+    if (sel.parentElement.classList.contains('select-spin')) return;
+    let wrapper = document.createElement('span');
+    wrapper.className = 'select-spin compact';
+    // Preserve the inline styles
+    wrapper.style.width = sel.style.width || '62px';
+    wrapper.style.flex = sel.style.flex || 'none';
+    sel.style.width = '100%';
+    sel.style.flex = '';
+
+    sel.parentNode.insertBefore(wrapper, sel);
+    wrapper.appendChild(sel);
+
+    let arrow = document.createElement('span');
+    arrow.className = 'select-arrow';
+    arrow.textContent = '▼';
+    wrapper.appendChild(arrow);
+
+    let btns = document.createElement('span');
+    btns.className = 'spin-btns';
+    btns.innerHTML = '<button class="spin-btn" onclick="stepSelect(this,\'up\')" tabindex="-1">▲</button><button class="spin-btn" onclick="stepSelect(this,\'down\')" tabindex="-1">▼</button>';
+    wrapper.appendChild(btns);
+  });
+}
+
+function loadLayersPreset(name) {
+  let preset = LAYERS_PRESETS[name];
+  if (!preset) return;
+  if (currentMode !== 'layers') switchMode('layers');
+  bitwiseLayers = preset.layers.map(l => ({ ...l }));
+  layersCombine = preset.combine || 'chain';
+  layersFeedback = { ...preset.feedback };
+  layersColorMode = preset.color;
+  currentT = preset.t || 0;
+  if (preset.umax) { currentUmax = preset.umax; document.getElementById('umax-input').value = preset.umax; }
+  if (preset.vmax) { currentVmax = preset.vmax; document.getElementById('vmax-input').value = preset.vmax; }
+
+  document.getElementById('layers-color-select').value = layersColorMode;
+  document.getElementById('layers-combine').value = layersCombine;
+  document.getElementById('feedback-enable').checked = layersFeedback.enabled;
+  document.getElementById('feedback-iterations').value = layersFeedback.iterations;
+  document.getElementById('feedback-op').value = layersFeedback.op;
+  document.getElementById('feedback-source').value = layersFeedback.source;
+  document.getElementById('layers-t-slider').value = currentT;
+  document.getElementById('layers-t-label').textContent = currentT;
+  renderLayerStackUI();
+  scheduleRender();
+}
+
+function computeLayerValue(layers, combine, fb, xc, yc, t) {
+  t = t || 0;
+  let layerVals = layers.map((L, li) => {
+    let effectiveShift = (L.shift + Math.floor(t * 0.1 * li)) | 0;
+    let sv = effectiveShift >= 0
+      ? evalBitwiseOp(L.op, xc >> effectiveShift, yc >> effectiveShift)
+      : evalBitwiseOp(L.op, xc << -effectiveShift, yc << -effectiveShift);
+    return (sv * L.scale) | 0;
+  });
+
+  let val;
+  if (combine === 'chain') {
+    val = layerVals[0];
+    for (let li = 1; li < layers.length; li++) val = evalBitwiseOp(layers[li].op, val, layerVals[li]);
+  } else if (combine === 'add') {
+    val = 0; for (let li = 0; li < layers.length; li++) val = (val + layerVals[li]) | 0;
+  } else if (combine === 'xor') {
+    val = 0; for (let li = 0; li < layers.length; li++) val = (val ^ layerVals[li]) | 0;
+  } else if (combine === 'or') {
+    val = 0; for (let li = 0; li < layers.length; li++) val = (val | layerVals[li]) | 0;
+  } else if (combine === 'and') {
+    val = -1; for (let li = 0; li < layers.length; li++) val = (val & layerVals[li]) | 0;
+  }
+
+  if (fb.enabled && fb.iterations > 0) {
+    for (let fi = 1; fi <= fb.iterations; fi++) {
+      let feedSrc = fb.source === 'y' ? yc + fi : fb.source === 'xy' ? xc + yc + fi : fb.source === 'iter' ? fi : xc + fi;
+      val = evalBitwiseOp(fb.op, val, feedSrc);
+    }
+  }
+  return val;
+}
+
+function layersMapColor(val, colorMode) {
+  switch (colorMode) {
+    case '1bit':     return (val & 1) ? 0 : 255;
+    case '1bit_inv': return (val & 1) ? 255 : 0;
+    case 'threshold': return (val & 1) ? 1 : 2;
+    case 'bits_rgb': return (val & 7); // low 3 bits
+    case 'bits_rgb_plus': return (val & 63); // low 6 bits
+    case 'mod_rainbow': return val & 0xFF;
+    case 'hsl_wheel': return val & 0xFF;
+    case 'phase': return val & 0xFF;
+    case 'popcount_heat': return popcount32(val);
+    default: return val; // raw_ modes — check raw values
+  }
+}
+
+function layersIsNotSolidColor(layers, combine, fb, colorMode, umax, vmax, t) {
+  let first = null;
+  for (let s = 0; s < 64; s++) {
+    let xc = Math.floor(Math.random() * umax);
+    let yc = Math.floor(Math.random() * vmax);
+    let val = computeLayerValue(layers, combine, fb, xc, yc, t);
+    let mapped = layersMapColor(val, colorMode);
+
+    if (first === null) first = mapped;
+    else if (mapped !== first) return true;
+  }
+  return false;
+}
+
+function randomLayers() {
+  let ops = ['XOR','AND','OR','NAND','NOR','XNOR','ADD','SUB'];
+  let combines = ['chain','add','xor','or','and'];
+  let colorModes = ['1bit','1bit_inv','raw_viridis','raw_turbo','raw_aurora','raw_cividis','raw_coolwarm','raw_spectral','raw_synthwave','mod_rainbow','hsl_wheel','phase','bits_rgb','bits_rgb_plus','popcount_heat'];
+  let pick = arr => arr[Math.floor(Math.random() * arr.length)];
+  let umax = currentUmax, vmax = currentVmax;
+
+  // Reset t to 0 for layers mode — large t values cause the t-based shift
+  // modulation to push all layers beyond useful range
+  currentT = 0;
+  document.getElementById('layers-t-slider').value = 0;
+  document.getElementById('layers-t-label').textContent = '0';
+
+  // Compute max safe shift: beyond this, all coords become 0
+  let maxCoord = Math.max(umax, vmax, 1);
+  let maxSafeShift = Math.max(1, Math.floor(Math.log2(maxCoord)));
+
+  // Randomize color first so the solid color check uses the actual color mode
+  let candidateColor = layersColorMode;
+  if (document.getElementById('rand-layerscolor').checked) {
+    candidateColor = pick(colorModes);
+  }
+
+  let attempts = 0;
+  let found = false;
+  do {
+    if (document.getElementById('rand-layers').checked) {
+      let count = 2 + Math.floor(Math.random() * 3); // 2-4
+      bitwiseLayers = [];
+      for (let i = 0; i < count; i++) {
+        bitwiseLayers.push({
+          op: pick(ops),
+          shift: Math.floor(Math.random() * (maxSafeShift + 1)),
+          scale: 1 + Math.floor(Math.random() * 4),
+        });
+      }
+    }
+
+    if (document.getElementById('rand-combine').checked) {
+      layersCombine = pick(combines);
+    }
+
+    if (document.getElementById('rand-feedback').checked) {
+      layersFeedback.enabled = Math.random() < 0.4;
+      if (layersFeedback.enabled) {
+        layersFeedback.iterations = 1 + Math.floor(Math.random() * 8);
+        layersFeedback.op = pick(ops);
+        layersFeedback.source = pick(['x','y','xy','iter']);
+      }
+    }
+
+    attempts++;
+    if (layersIsNotSolidColor(bitwiseLayers, layersCombine, layersFeedback, candidateColor, umax, vmax, currentT)) { found = true; break; }
+  } while (attempts < 40);
+
+  // Fallback to a known-good configuration if all attempts produced solid color
+  if (!found) {
+    bitwiseLayers = [
+      { op: 'XOR', shift: 0, scale: 1 },
+      { op: 'AND', shift: Math.min(2, maxSafeShift), scale: 1 },
+    ];
+    layersCombine = 'chain';
+    layersFeedback = { enabled: false, iterations: 3, op: 'XOR', source: 'x' };
+  }
+
+  layersColorMode = candidateColor;
+  document.getElementById('layers-color-select').value = layersColorMode;
+
+  document.getElementById('layers-combine').value = layersCombine;
+  document.getElementById('feedback-enable').checked = layersFeedback.enabled;
+  document.getElementById('feedback-iterations').value = layersFeedback.iterations;
+  document.getElementById('feedback-op').value = layersFeedback.op;
+  document.getElementById('feedback-source').value = layersFeedback.source;
+  renderLayerStackUI();
+
+  if (currentMode !== 'layers') switchMode('layers');
+  if (!animating) scheduleRender();
+}
+
 function renderFractal() {
   if (currentMode === 'formula') renderFormulaMode();
+  else if (currentMode === 'layers') renderLayersMode();
   else renderBqMode();
 }
 
@@ -1520,34 +2508,52 @@ function toggleAnimation() {
 
 function startAnimation() {
   animating = true;
-  document.getElementById('anim-play-btn').innerHTML = '&#9724; Stop';
+  let btnId = currentMode === 'layers' ? 'layers-anim-play-btn' : 'anim-play-btn';
+  document.getElementById(btnId).innerHTML = '&#9724; Stop';
   animLoop();
 }
 
 function stopAnimation() {
   animating = false;
-  document.getElementById('anim-play-btn').innerHTML = '&#9654; Play';
+  let btn1 = document.getElementById('anim-play-btn');
+  let btn2 = document.getElementById('layers-anim-play-btn');
+  if (btn1) btn1.innerHTML = '&#9654; Play';
+  if (btn2) btn2.innerHTML = '&#9654; Play';
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
 }
 
 function animLoop() {
   if (!animating) return;
-  animSpeed = parseFloat(document.getElementById('anim-speed').value) || 1;
-  animDir = parseInt(document.getElementById('anim-dir').value) || 1;
+  let isLayers = currentMode === 'layers';
+  let speedId = isLayers ? 'layers-anim-speed' : 'anim-speed';
+  let dirId = isLayers ? 'layers-anim-dir' : 'anim-dir';
+  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
+  let labelId = isLayers ? 'layers-t-label' : 't-label';
+
+  animSpeed = parseFloat(document.getElementById(speedId).value) || 1;
+  animDir = parseInt(document.getElementById(dirId).value) || 1;
   currentT += animSpeed * animDir;
-  document.getElementById('t-slider').value = currentT;
-  document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
-  renderFormulaImmediate();
+  document.getElementById(sliderId).value = currentT;
+  document.getElementById(labelId).textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
+
+  if (isLayers) renderLayersImmediate();
+  else renderFormulaImmediate();
+
   document.getElementById('status').textContent = `Animating... t=${Number.isInteger(currentT) ? currentT : currentT.toFixed(2)}`;
   animFrameId = requestAnimationFrame(animLoop);
 }
 
 function stepT(dir) {
-  let speed = parseFloat(document.getElementById('anim-speed').value) || 1;
+  let isLayers = currentMode === 'layers';
+  let speedId = isLayers ? 'layers-anim-speed' : 'anim-speed';
+  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
+  let labelId = isLayers ? 'layers-t-label' : 't-label';
+  let speed = parseFloat(document.getElementById(speedId).value) || 1;
   currentT += Math.abs(speed) * dir;
-  document.getElementById('t-slider').value = currentT;
-  document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
+  document.getElementById(sliderId).value = currentT;
+  document.getElementById(labelId).textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
   if (currentMode === 'formula') renderFormulaImmediate();
+  else if (currentMode === 'layers') renderLayersImmediate();
   else scheduleRender();
 }
 
@@ -1562,11 +2568,15 @@ function switchMode(mode) {
   });
   document.getElementById('panel-bq').classList.toggle('active', mode === 'bq');
   document.getElementById('panel-formula').classList.toggle('active', mode === 'formula');
+  document.getElementById('panel-layers').classList.toggle('active', mode === 'layers');
 
   if (mode === 'formula') {
     compiledFormula = compileFormula(document.getElementById('formula-input').value);
     if (!compiledFormula) updateFormulaError('Syntax error');
     else updateFormulaError('');
+  } else if (mode === 'layers') {
+    stopAnimation();
+    renderLayerStackUI();
   } else {
     stopAnimation();
   }
@@ -1750,6 +2760,14 @@ function captureState() {
     state.animFrames = parseInt(document.getElementById('bq-anim-frames').value);
     state.animFps = parseInt(document.getElementById('bq-anim-fps').value);
     state.animEasing = document.getElementById('bq-anim-easing').value;
+  } else if (currentMode === 'layers') {
+    state.layers = bitwiseLayers.map(l => ({ ...l }));
+    state.layersCombine = layersCombine;
+    state.layersFeedback = { ...layersFeedback };
+    state.layersColor = layersColorMode;
+    state.t = currentT;
+    state.speed = parseFloat(document.getElementById('layers-anim-speed').value) || 1;
+    state.dir = parseInt(document.getElementById('layers-anim-dir').value) || 1;
   } else {
     state.formula = currentFormula;
     state.color = formulaColorMode;
@@ -1800,6 +2818,26 @@ function restoreState(state) {
     // Show/hide custom ramp editor
     let rampEditor = document.getElementById('custom-ramp-editor');
     if (rampEditor) rampEditor.style.display = (currentPalette === 'custom') ? '' : 'none';
+  } else if (state.mode === 'layers') {
+    if (state.layers) bitwiseLayers = state.layers.map(l => ({ ...l }));
+    if (state.layersCombine) { layersCombine = state.layersCombine; document.getElementById('layers-combine').value = state.layersCombine; }
+    if (state.layersFeedback) {
+      layersFeedback = { ...state.layersFeedback };
+      document.getElementById('feedback-enable').checked = layersFeedback.enabled;
+      document.getElementById('feedback-iterations').value = layersFeedback.iterations;
+      document.getElementById('feedback-op').value = layersFeedback.op;
+      document.getElementById('feedback-source').value = layersFeedback.source;
+    }
+    if (state.layersColor) { layersColorMode = state.layersColor; document.getElementById('layers-color-select').value = state.layersColor; }
+    if (state.t != null) {
+      currentT = state.t;
+      document.getElementById('layers-t-slider').value = state.t;
+      document.getElementById('layers-t-label').textContent = Number.isInteger(state.t) ? state.t : state.t.toFixed(2);
+    }
+    if (state.speed != null) document.getElementById('layers-anim-speed').value = state.speed;
+    if (state.dir != null) document.getElementById('layers-anim-dir').value = state.dir;
+    renderLayerStackUI();
+    stopAnimation();
   } else {
     if (state.formula != null) {
       currentFormula = state.formula;
@@ -1849,7 +2887,7 @@ function renderUserPresetList() {
   container.innerHTML = presets.map((p, i) => `
     <div class="user-preset-row" onclick="loadUserPreset(${i})" title="Click to load">
       <span class="preset-name">${escHtml(p.name)}</span>
-      <span class="preset-mode">${p.state.mode === 'bq' ? 'Paper' : 'Formula'}</span>
+      <span class="preset-mode">${p.state.mode === 'bq' ? 'Paper' : p.state.mode === 'layers' ? 'Layers' : 'Formula'}</span>
       <button class="preset-del" onclick="event.stopPropagation(); deleteUserPreset(${i})" title="Delete">&times;</button>
     </div>
   `).join('');
@@ -1861,6 +2899,8 @@ function saveUserPreset() {
   if (!name) {
     name = currentMode === 'bq'
       ? `p=${currentP} q=${currentQ} R=${currentR.toString().slice(0, 12)}`
+      : currentMode === 'layers'
+      ? `Layers: ${bitwiseLayers.map(l=>l.op).join('→')}`
       : currentFormula.slice(0, 30);
   }
   let presets = loadUserPresets();
@@ -2019,7 +3059,7 @@ function randomize() {
   }
 
   if (document.getElementById('rand-palette').checked) {
-    let palettes = ['viridis', 'magma', 'inferno', 'plasma', 'turbo', 'grayscale', 'aurora'];
+    let palettes = ['viridis', 'magma', 'inferno', 'plasma', 'turbo', 'grayscale', 'aurora', 'cividis', 'coolwarm', 'spectral', 'synthwave'];
     let pal = palettes[Math.floor(Math.random() * palettes.length)];
     document.getElementById('palette-select').value = pal;
     currentPalette = pal;
@@ -2064,8 +3104,8 @@ function getBqAnimConfig() {
     param:  document.getElementById('bq-anim-param').value,
     start:  parseFloat(document.getElementById('bq-anim-start').value),
     end:    parseFloat(document.getElementById('bq-anim-end').value),
-    frames: parseInt(document.getElementById('bq-anim-frames').value) || 30,
-    fps:    parseInt(document.getElementById('bq-anim-fps').value) || 15,
+    frames: parseInt(document.getElementById('bq-anim-frames').value) || 90,
+    fps:    parseInt(document.getElementById('bq-anim-fps').value) || 30,
     easing: document.getElementById('bq-anim-easing').value,
   };
 }
@@ -2082,6 +3122,9 @@ function getActiveAnimConfig() {
   let exp = getExportConfig();
   if (currentMode === 'formula') {
     return { mode: 'formula', frames: exp.frames, fps: exp.fps };
+  }
+  if (currentMode === 'layers') {
+    return { mode: 'layers', frames: exp.frames, fps: exp.fps };
   }
   let bq = getBqAnimConfig();
   // For export, override frames/fps from export section
@@ -2184,6 +3227,10 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
       document.getElementById('umax-input').value = savedUmax;
       document.getElementById('vmax-input').value = savedVmax;
       updateRoughnessDisplay();
+    } else if (cfg.mode === 'layers') {
+      currentT = savedT;
+      document.getElementById('layers-t-slider').value = savedT;
+      document.getElementById('layers-t-label').textContent = savedT;
     } else {
       currentT = savedT;
       document.getElementById('t-slider').value = savedT;
@@ -2204,6 +3251,10 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
       let eased = applyEasing(t, cfg.easing);
       let val = cfg.start + (cfg.end - cfg.start) * eased;
       applyBqAnimValue(cfg.param, val);
+    } else if (cfg.mode === 'layers') {
+      let speed = parseFloat(document.getElementById('layers-anim-speed').value) || 1;
+      let dir = parseInt(document.getElementById('layers-anim-dir').value) || 1;
+      currentT = savedT + frameIdx * speed * dir;
     } else {
       // Formula mode: advance t parameter
       let speed = parseFloat(document.getElementById('anim-speed').value) || 1;
@@ -2218,6 +3269,11 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
 
     if (cfg.mode === 'formula') {
       renderFormulaImmediate();
+      let c = document.querySelector('#canvas-container canvas');
+      onFrame(currentFrame, c);
+      setTimeout(nextFrame, 0);
+    } else if (cfg.mode === 'layers') {
+      renderLayersImmediate();
       let c = document.querySelector('#canvas-container canvas');
       onFrame(currentFrame, c);
       setTimeout(nextFrame, 0);
@@ -2680,6 +3736,7 @@ function setup() {
   updateRoughnessDisplay();
   renderRampEditor();
   drawPalettePreview();
+  wrapAllSelects();
 
   // bq animation param defaults
   document.getElementById('bq-anim-param').addEventListener('change', function() {
@@ -2763,6 +3820,16 @@ window.wrapFormula = wrapFormula;
 window.formulaUndo = formulaUndo;
 window.bqAnimPreview = bqAnimPreview;
 window.bqAnimStop = bqAnimStop;
+window.loadLayersPreset = loadLayersPreset;
+window.randomLayers = randomLayers;
+window.addBitwiseLayer = addBitwiseLayer;
+window.removeBitwiseLayer = removeBitwiseLayer;
+window.onLayersParamChange = onLayersParamChange;
+window.activeRandomize = activeRandomize;
+window.sparkleRandomize = sparkleRandomize;
+window.stepNumInput = stepNumInput;
+window.stepSelect = stepSelect;
+window.renderLayersImmediate = renderLayersImmediate;
 window.exportGIF = exportGIF;
 window.exportMP4 = exportMP4;
 window.saveUserPreset = saveUserPreset;
