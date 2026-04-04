@@ -223,8 +223,9 @@
     button.secondary:hover { background: linear-gradient(135deg, #1a0f30cc, #0d1b2acc); border-color: #00e5ff66; box-shadow: 0 0 12px #00e5ff18, inset 0 1px 0 #ffffff10; color: #66ffee; }
     #canvas-container {
       flex: 1; display: flex; align-items: center; justify-content: center; background: #050208;
+      overflow: hidden; min-height: 0;
     }
-    canvas { display: block; }
+    #canvas-container canvas { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
     #magma-table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 0.75em; }
     #magma-table td, #magma-table th {
       border: 1px solid #ffffff10; padding: 2px 4px; text-align: center; min-width: 22px;
@@ -291,9 +292,59 @@
       pointer-events: none;
     }
     /* Animation controls */
-    .anim-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+    .anim-row { display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
     .anim-row button { padding: 5px 12px; font-size: 0.85em; margin: 0; }
     .anim-row input[type="number"] { width: 80px; }
+
+    /* Loop slider overlay */
+    .loop-slider-wrap {
+      position: relative; height: 24px; margin: 2px 0; width: 100%;
+    }
+    .loop-slider-wrap input[type="range"] {
+      position: absolute; top: 0; left: 0; width: 100%; height: 24px; margin: 0;
+      -webkit-appearance: none; appearance: none; background: transparent;
+      pointer-events: none;
+    }
+    .loop-slider-wrap .loop-handle::-webkit-slider-runnable-track {
+      height: 4px; background: transparent; border-radius: 2px;
+    }
+    .loop-slider-wrap .loop-handle::-moz-range-track {
+      height: 4px; background: transparent; border-radius: 2px;
+    }
+    /* Playhead thumb — green, on top */
+    .loop-slider-wrap .playhead { z-index: 3; }
+    .loop-slider-wrap .playhead::-webkit-slider-thumb {
+      -webkit-appearance: none; pointer-events: auto; cursor: pointer;
+      width: 14px; height: 14px; border-radius: 50%; margin-top: -5px;
+      background: #00ff88; border: 2px solid #00ff88; box-shadow: 0 0 6px #00ff8866;
+    }
+    .loop-slider-wrap .playhead::-moz-range-thumb {
+      pointer-events: auto; cursor: pointer;
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #00ff88; border: 2px solid #00ff88; box-shadow: 0 0 6px #00ff8866;
+    }
+    /* Loop handle thumbs — blue */
+    .loop-slider-wrap .loop-handle { z-index: 2; }
+    .loop-slider-wrap .loop-handle::-webkit-slider-thumb {
+      -webkit-appearance: none; pointer-events: auto; cursor: pointer;
+      width: 10px; height: 18px; border-radius: 3px; margin-top: -7px;
+      background: #4488ff; border: 1px solid #aaccff; box-shadow: 0 0 6px #4488ff66;
+    }
+    .loop-slider-wrap .loop-handle::-moz-range-thumb {
+      pointer-events: auto; cursor: pointer;
+      width: 10px; height: 18px; border-radius: 3px;
+      background: #4488ff; border: 1px solid #aaccff; box-shadow: 0 0 6px #4488ff66;
+    }
+    /* Blue fill bar between loop handles */
+    .loop-range-fill {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      height: 4px; background: #4488ff44; border-radius: 2px;
+      pointer-events: none; z-index: 1;
+    }
+    /* Standalone playhead (no loop) track color */
+    .loop-slider-wrap .playhead::-webkit-slider-runnable-track { background: #ffffff15; }
+    .loop-slider-wrap .playhead::-moz-range-track { background: #ffffff15; }
+
     #formula-error { font-size: 0.75em; color: #ff3366; margin-top: 3px; min-height: 1em; }
 
     /* Color ramp editor */
@@ -553,6 +604,16 @@
 
       <details class="collapsible">
       <summary>Parameter Animation</summary>
+      <div class="anim-row" style="margin-top:0; flex-wrap:nowrap;">
+        <button id="bq-anim-play-btn" onclick="bqAnimPreview()" style="flex:none;">&#9654; Preview</button>
+        <button id="bq-anim-stop-btn" class="secondary" onclick="bqAnimStop()" style="display:none; flex:none;">&#9724; Stop</button>
+        <label style="font-size:0.8em; color:#a0c4ff; white-space:nowrap; flex:none;">Frame</label>
+        <input type="number" id="bq-frame-value" value="1" min="1" max="90" step="1" style="width:60px; flex:none;"
+          oninput="bqStepAnim(parseInt(this.value) - 1 - bqAnimFrameIdx);" onchange="bqStepAnim(parseInt(this.value) - 1 - bqAnimFrameIdx);">
+      </div>
+      <input type="range" id="bq-frame-slider" value="0" min="0" max="89" step="1" style="width:100%; margin:4px 0 2px;"
+        oninput="bqStepAnim(parseInt(this.value) - bqAnimFrameIdx);">
+      <div class="hint" id="bq-anim-status" style="margin-bottom:4px;"></div>
       <div class="control-group">
         <label>Animate parameter</label>
         <select id="bq-anim-param">
@@ -565,15 +626,13 @@
       </div>
       <div class="row">
         <div class="control-group">
-          <label>Start value</label>
+          <label>Start</label>
           <input type="number" id="bq-anim-start" value="2" step="any">
         </div>
         <div class="control-group">
-          <label>End value</label>
+          <label>End</label>
           <input type="number" id="bq-anim-end" value="10" step="any">
         </div>
-      </div>
-      <div class="row">
         <div class="control-group">
           <label>Frames</label>
           <input type="number" id="bq-anim-frames" value="90" min="2" max="600">
@@ -583,22 +642,15 @@
           <input type="number" id="bq-anim-fps" value="30" min="1" max="60">
         </div>
       </div>
-      <div class="control-group">
-        <label>Easing</label>
-        <select id="bq-anim-easing">
+      <div class="anim-row" style="margin-top:2px;">
+        <label style="font-size:0.75em; color:#a0c4ff; flex:none;">Easing</label>
+        <select id="bq-anim-easing" style="flex:1; font-size:0.85em;">
           <option value="linear">Linear</option>
           <option value="easeinout">Ease In/Out</option>
           <option value="easein">Ease In</option>
           <option value="easeout">Ease Out</option>
         </select>
       </div>
-      <div class="anim-row" style="flex-wrap:wrap;">
-        <button class="secondary" onclick="bqStepAnim(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
-        <button id="bq-anim-play-btn" onclick="bqAnimPreview()">&#9654; Preview</button>
-        <button id="bq-anim-stop-btn" class="secondary" onclick="bqAnimStop()" style="display:none;">&#9724; Stop</button>
-        <button class="secondary" onclick="bqStepAnim(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
-      </div>
-      <div class="hint" id="bq-anim-status"></div>
       </details>
     </div>
 
@@ -648,6 +700,8 @@
           <button class="block-btn" onclick="appendBlock('(y + t)')">y+t</button>
           <button class="block-btn" onclick="appendBlock('(x - t)')">x&minus;t</button>
           <button class="block-btn" onclick="appendBlock('(y - t)')">y&minus;t</button>
+          <button class="block-btn" onclick="appendBlock('(x ^ t)')">x^t</button>
+          <button class="block-btn" onclick="appendBlock('(y ^ t)')">y^t</button>
         </div>
       </div>
       <div class="control-group">
@@ -696,6 +750,12 @@
           <button class="block-btn" onclick="appendBlock('(x * x + y * y)')">x&sup2;+y&sup2;</button>
           <button class="block-btn" onclick="appendBlock('((x - t) >> 3)')">(x-t)>>3</button>
           <button class="block-btn" onclick="appendBlock('((y - t) >> 3)')">(y-t)>>3</button>
+          <button class="block-btn" onclick="appendBlock('((x + t) ^ (y - t))')">scroll&nbsp;^</button>
+          <button class="block-btn" onclick="appendBlock('((x - t) * (x - t) + (y - t) * (y - t))')">radial(t)</button>
+          <button class="block-btn" onclick="appendBlock('(t >> 3)')">t>>3</button>
+          <button class="block-btn" onclick="appendBlock('(t & 0xFF)')">t&amp;0xFF</button>
+          <button class="block-btn" onclick="appendBlock('((x + y + t) >> 3)')">diag(t)</button>
+          <button class="block-btn" onclick="appendBlock('(x * (t >> 4))')">x&times;t>>4</button>
           <button class="block-btn" onclick="appendBlock(' == 0 ? 1 : 0')">==0?1:0</button>
           <button class="block-btn" onclick="appendBlock(' & 1')">&amp;&nbsp;1</button>
           <button class="block-btn" onclick="appendBlock(' >> 4')">>>&nbsp;4</button>
@@ -764,25 +824,41 @@
 
       <details class="collapsible" data-sync-group="animation">
       <summary>Animation (t parameter)</summary>
-      <div class="control-group">
-        <label>t value: <span id="t-label">350</span></label>
-        <div style="display:flex; align-items:center; gap:4px;">
-          <button class="secondary" onclick="stepT(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
-          <input type="range" id="t-slider" value="350" min="0" max="2000" step="any" style="flex:1;">
-          <button class="secondary" onclick="stepT(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
-        </div>
-      </div>
-      <div class="anim-row">
-        <button id="anim-play-btn" onclick="toggleAnimation()">&#9654; Play</button>
-        <label style="font-size:0.8em; color:#a0c4ff;">Speed:</label>
-        <input type="number" id="anim-speed" value="1" min="-20" max="20" step="0.1" style="width:60px;">
-        <label style="font-size:0.8em; color:#a0c4ff;">Dir:</label>
-        <select id="anim-dir" style="width:60px; font-size:0.8em;">
-          <option value="1">+</option>
-          <option value="-1">&minus;</option>
+      <div class="anim-row" style="margin-top:0; flex-wrap:nowrap;">
+        <button id="anim-play-btn" onclick="toggleAnimation()" style="flex:none;">&#9654; Play</button>
+        <button class="secondary" onclick="resetT(false)" style="flex:none;" title="Reset t to 0">&#8634;</button>
+        <label style="font-size:0.8em; color:#a0c4ff; white-space:nowrap; flex:none;">t</label>
+        <input type="number" id="t-value" value="350" step="1" style="width:68px; flex:none;" onchange="let v=parseInt(this.value); if(!isNaN(v)){currentT=v; syncTControls(false); if(!animating) scheduleRender();}">
+        <input type="number" id="anim-speed" value="1" min="-20" max="20" step="0.1" style="width:48px; flex:none; font-size:0.8em;" title="Speed (steps per frame)">
+        <select id="anim-dir" style="width:auto; font-size:0.75em; padding:3px 1px; flex:none;" title="Direction">
+          <option value="1">Fwd</option>
+          <option value="-1">Rev</option>
         </select>
       </div>
-      <div class="hint" style="margin-top:4px;">Speed = steps per frame. Use fractional values (e.g. 0.5) for slower playback.</div>
+      <div class="loop-slider-wrap">
+        <input type="range" id="loop-in-slider" class="loop-handle" min="-2000" max="2000" value="0" step="1" style="display:none;"
+          oninput="setLoopPoint('in', parseInt(this.value));">
+        <input type="range" id="loop-out-slider" class="loop-handle" min="-2000" max="2000" value="500" step="1" style="display:none;"
+          oninput="setLoopPoint('out', parseInt(this.value));">
+        <div id="loop-range-fill" class="loop-range-fill" style="display:none;"></div>
+        <input type="range" id="t-slider" class="playhead" min="-2000" max="2000" value="350" step="1"
+          oninput="currentT=parseInt(this.value); syncTControls(false); if(!animating) scheduleRender();">
+      </div>
+      <div id="loop-section" style="display:none; margin-top:4px;">
+        <div class="anim-row" style="margin-top:0; flex-wrap:nowrap;">
+          <label style="font-size:0.75em; color:#4488ff; flex:none;">In</label>
+          <input type="number" id="loop-in-value" value="0" step="1" style="width:62px; flex:none; font-size:0.8em;"
+            onchange="let v=parseInt(this.value); if(!isNaN(v)) setLoopPoint('in',v);">
+          <label style="font-size:0.75em; color:#4488ff; flex:none;">Out</label>
+          <input type="number" id="loop-out-value" value="500" step="1" style="width:62px; flex:none; font-size:0.8em;"
+            onchange="let v=parseInt(this.value); if(!isNaN(v)) setLoopPoint('out',v);">
+          <label style="font-size:0.75em; color:#a0c4ff; flex:none; cursor:pointer; white-space:nowrap;" title="Ping-pong playback"><input type="checkbox" id="pingpong-enable" onchange="togglePingPong(this.checked)"> Ping-pong</label>
+        </div>
+      </div>
+      <div style="margin-top:4px;">
+        <label style="font-size:0.75em; color:#a0c4ff; cursor:pointer;"><input type="checkbox" id="loop-enable" onchange="toggleLoop(this.checked)"> Loop</label>
+      </div>
+      <span id="t-label" style="display:none;">350</span>
       </details>
     </div>
 
@@ -888,33 +964,51 @@
       <!-- Animation -->
       <details class="collapsible" data-sync-group="animation">
       <summary>Animation</summary>
-      <div class="control-group">
-        <label>t = <span id="layers-t-label">0</span></label>
-        <div style="display:flex; align-items:center; gap:4px;">
-          <button class="secondary" onclick="stepT(-1)" style="padding:2px 8px; font-size:0.85em;" title="Step back">&larr;</button>
-          <input type="range" id="layers-t-slider" min="-2000" max="2000" value="0" step="1" style="flex:1;"
-            oninput="currentT=parseFloat(this.value); document.getElementById('layers-t-label').textContent=this.value; if(!animating) renderLayersImmediate();">
-          <button class="secondary" onclick="stepT(1)" style="padding:2px 8px; font-size:0.85em;" title="Step forward">&rarr;</button>
+      <div class="anim-row" style="margin-top:0; flex-wrap:nowrap;">
+        <button id="layers-anim-play-btn" onclick="toggleAnimation()" style="flex:none;">&#9654; Play</button>
+        <button class="secondary" onclick="resetT(true)" style="flex:none;" title="Reset t to 0">&#8634;</button>
+        <label style="font-size:0.8em; color:#a0c4ff; white-space:nowrap; flex:none;">t</label>
+        <input type="number" id="layers-t-value" value="0" step="1" style="width:68px; flex:none;" onchange="let v=parseInt(this.value); if(!isNaN(v)){currentT=v; syncTControls(true); if(!animating) scheduleRender();}">
+        <input type="number" id="layers-anim-speed" value="1" min="-20" max="20" step="0.1" style="width:48px; flex:none; font-size:0.8em;" title="Speed (steps per frame)">
+        <select id="layers-anim-dir" style="width:auto; font-size:0.75em; padding:3px 1px; flex:none;" title="Direction">
+          <option value="1">Fwd</option>
+          <option value="-1">Rev</option>
+        </select>
+      </div>
+      <div class="loop-slider-wrap">
+        <input type="range" id="layers-loop-in-slider" class="loop-handle" min="-2000" max="2000" value="0" step="1" style="display:none;"
+          oninput="setLoopPoint('in', parseInt(this.value));">
+        <input type="range" id="layers-loop-out-slider" class="loop-handle" min="-2000" max="2000" value="500" step="1" style="display:none;"
+          oninput="setLoopPoint('out', parseInt(this.value));">
+        <div id="layers-loop-range-fill" class="loop-range-fill" style="display:none;"></div>
+        <input type="range" id="layers-t-slider" class="playhead" min="-2000" max="2000" value="0" step="1"
+          oninput="currentT=parseInt(this.value); syncTControls(true); if(!animating) renderLayersImmediate();">
+      </div>
+      <div id="layers-loop-section" style="display:none; margin-top:4px;">
+        <div class="anim-row" style="margin-top:0; flex-wrap:nowrap;">
+          <label style="font-size:0.75em; color:#4488ff; flex:none;">In</label>
+          <input type="number" id="layers-loop-in-value" value="0" step="1" style="width:62px; flex:none; font-size:0.8em;"
+            onchange="let v=parseInt(this.value); if(!isNaN(v)) setLoopPoint('in',v);">
+          <label style="font-size:0.75em; color:#4488ff; flex:none;">Out</label>
+          <input type="number" id="layers-loop-out-value" value="500" step="1" style="width:62px; flex:none; font-size:0.8em;"
+            onchange="let v=parseInt(this.value); if(!isNaN(v)) setLoopPoint('out',v);">
+          <label style="font-size:0.75em; color:#a0c4ff; flex:none; cursor:pointer; white-space:nowrap;" title="Ping-pong playback"><input type="checkbox" id="layers-pingpong-enable" onchange="togglePingPong(this.checked)"> Ping-pong</label>
         </div>
       </div>
-      <div class="control-group">
-        <label>Animate parameter</label>
+      <div style="margin-top:4px;">
+        <label style="font-size:0.75em; color:#a0c4ff; cursor:pointer;"><input type="checkbox" id="layers-loop-enable" onchange="toggleLoop(this.checked)"> Loop</label>
+      </div>
+      <div class="control-group" style="margin-top:4px;">
+        <label>Animate target</label>
         <select id="layers-anim-target">
           <option value="t">t (time)</option>
           <option value="shift">Layer shifts</option>
           <option value="scale">Layer scales</option>
+          <option value="fb_iter">Feedback iterations</option>
+          <option value="fb_op">Feedback operator (cycle)</option>
         </select>
       </div>
-      <div class="anim-row">
-        <button id="layers-anim-play-btn" onclick="toggleAnimation()">&#9654; Play</button>
-        <label style="font-size:0.8em; color:#a0c4ff;">Speed:</label>
-        <input type="number" id="layers-anim-speed" value="1" min="-20" max="20" step="0.1" style="width:60px;">
-        <label style="font-size:0.8em; color:#a0c4ff;">Dir:</label>
-        <select id="layers-anim-dir" style="width:60px; font-size:0.8em;">
-          <option value="1">+</option>
-          <option value="-1">&minus;</option>
-        </select>
-      </div>
+      <span id="layers-t-label" style="display:none;">0</span>
       </details>
     </div>
 
@@ -930,6 +1024,13 @@
         <label>v/y range [0, max]</label>
         <input type="number" id="vmax-input" value="100" min="1" max="4000">
       </div>
+    </div>
+    <div class="control-group">
+      <label>Zoom origin</label>
+      <select id="zoom-origin-select" onchange="zoomOrigin=this.value; scheduleRender();">
+        <option value="corner">Top-left corner</option>
+        <option value="center">Center</option>
+      </select>
     </div>
 
     <div class="row">
@@ -1341,6 +1442,9 @@ let currentQ = 2;
 let currentR = 6n;
 let currentUmax = 100;
 let currentVmax = 100;
+let zoomOrigin = 'corner';
+let zoomRefU = 100;
+let zoomRefV = 100;
 let currentResW = 1080;
 let currentResH = 1080;
 let currentD = 0;
@@ -1358,6 +1462,11 @@ let animating = false;
 let animFrameId = null;
 let animSpeed = 1;
 let animDir = 1;
+let loopEnabled = false;
+let loopIn = 0;
+let loopOut = 500;
+let pingPongEnabled = false;
+let loopPingPongDir = 1;
 let formulaColorMode = '1bit';
 
 // Bitwise Layers mode
@@ -1407,7 +1516,7 @@ function randomFormula() {
     } while (attempts < 80 && (!fn || !formulaIsNotSolidColor(fn, t)));
 
     if (!fn || !formulaIsNotSolidColor(fn, t)) {
-      formula = '(x ^ y) & 0xFF'; // fallback
+      formula = '((x + t) ^ y) & 0xFF'; // fallback
       fn = compileFormula(formula);
     }
 
@@ -1424,53 +1533,76 @@ function randomFormula() {
     formulaColorMode = colorMode;
   }
 
+  // Reset t to 0
+  currentT = 0;
+  syncTControls(false);
+
   if (currentMode !== 'formula') switchMode('formula');
-  if (!animating) scheduleRender();
+  // All randomized formulas contain t — ensure animation is running
+  let speedEl = document.getElementById('anim-speed');
+  if (parseInt(speedEl.value) === 0) speedEl.value = 1;
+  startAnimation();
 }
 
 function generateRandomFormula() {
-  // Building blocks
-  let vars = ['x', 'y'];
-  let varsT = ['x', 'y', 't', '(x + t)', '(y + t)', '(x - t)', '(y - t)'];
+  // Building blocks — always include t for animation
+  let varsT = ['x', 'y', 't', '(x + t)', '(y + t)', '(x - t)', '(y - t)', '(x ^ t)', '(y ^ t)'];
   let bitwiseOps = ['^', '&', '|'];
   let shifts = [1, 2, 3, 4, 5, 6, 8];
   let constants = [1, 2, 3, 4, 7, 8, 15, 16, 0xFF, 0x0F];
 
-  let useT = Math.random() < 0.5;
-  let pool = useT ? varsT : vars;
-
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-  function randVar() { return pick(pool); }
+  function randVar() { return pick(varsT); }
   function randBitOp() { return pick(bitwiseOps); }
   function randShift() { return pick(shifts); }
   function randConst() { return pick(constants); }
+  // Guaranteed t-containing term for injection
+  function randTVar() { return pick(['t', '(x + t)', '(y + t)', '(x - t)', '(y - t)', '(x ^ t)', '(y ^ t)', '(t >> ' + pick([1,2,3,4]) + ')']); }
 
-  // Template patterns — pick one and fill in randomly
+  // Template patterns — all designed to include t for animation
   let templates = [
-    // Simple bitwise
-    () => `(${randVar()} ${randBitOp()} ${randVar()})`,
-    // Shifted combo
-    () => `((${randVar()} ${randBitOp()} ${randVar()}) >> ${randShift()})`,
-    // Knuth-style
-    () => `(((${randVar()} ^ ~${randVar()}) & (${randVar()} >> ${randShift()}))**2 >> ${pick([8,10,12,14])}) & ${pick([1,3,7])}`,
-    // Sierpinski-style
-    () => `(${randVar()} & ${randVar()}) == 0 ? 1 : 0`,
-    // Ring pattern
-    () => `(${randVar()} * ${randVar()} + ${randVar()} * ${randVar()}) >> ${randShift()}`,
-    // Double XOR
-    () => `(${randVar()} ${randBitOp()} ${randVar()}) ${randBitOp()} ((${randVar()} ${randBitOp()} ${randVar()}) >> ${randShift()})`,
+    // Scrolling bitwise
+    () => `(${randTVar()} ${randBitOp()} ${randVar()})`,
+    // Shifted combo with t
+    () => `((${randTVar()} ${randBitOp()} ${randVar()}) >> ${randShift()})`,
+    // Knuth-style animated
+    () => `(((${randTVar()} ^ ~${randVar()}) & (${randVar()} >> ${randShift()}))**2 >> ${pick([8,10,12,14])}) & ${pick([1,3,7])}`,
+    // Sierpinski scroll
+    () => `(${randTVar()} & ${randVar()}) == 0 ? 1 : 0`,
+    // Animated rings
+    () => `(${randTVar()} * ${randVar()} + ${randVar()} * ${randVar()}) >> ${randShift()}`,
+    // Double XOR with t
+    () => `(${randTVar()} ${randBitOp()} ${randVar()}) ${randBitOp()} ((${randVar()} ${randBitOp()} ${randVar()}) >> ${randShift()})`,
     // Masked combo
-    () => `((${randVar()} ${randBitOp()} ${randVar()}) * (${randVar()} ${randBitOp()} ${randVar()})) >> ${pick([6,8,10,12])}`,
-    // Modular
-    () => `(${randVar()} ${randBitOp()} ${randVar()}) & ${pick([0xFF, 0x0F, 7, 15, 31, 63])}`,
-    // Multi-layer
-    () => `((${randVar()} >> ${pick([1,2,3])}) ${randBitOp()} (${randVar()} >> ${pick([1,2,3])})) & ((${randVar()} ${randBitOp()} ${randVar()}) >> ${pick([0,1,2])})`,
-    // Interference
-    () => `((${randVar()} ^ (${randVar()} + ${randConst()})) & (${randVar()} ^ (${randVar()} + ${randConst()})))`,
-    // Squared difference
-    () => `((${randVar()} - ${randVar()})**2 >> ${randShift()}) ${randBitOp()} ${randConst()}`,
-    // Cascaded shifts
-    () => `(${randVar()} ${randBitOp()} (${randVar()} >> ${pick([1,2])})) ${randBitOp()} (${randVar()} ${randBitOp()} (${randVar()} >> ${pick([2,3,4])}))`,
+    () => `((${randTVar()} ${randBitOp()} ${randVar()}) * (${randVar()} ${randBitOp()} ${randVar()})) >> ${pick([6,8,10,12])}`,
+    // Modular with scroll
+    () => `(${randTVar()} ${randBitOp()} ${randVar()}) & ${pick([0xFF, 0x0F, 7, 15, 31, 63])}`,
+    // Multi-layer animated
+    () => `((${randTVar()} >> ${pick([1,2,3])}) ${randBitOp()} (${randVar()} >> ${pick([1,2,3])})) & ((${randVar()} ${randBitOp()} ${randVar()}) >> ${pick([0,1,2])})`,
+    // Interference with t
+    () => `((${randVar()} ^ (${randTVar()} + ${randConst()})) & (${randVar()} ^ (${randVar()} + ${randConst()})))`,
+    // Squared difference animated
+    () => `((${randTVar()} - ${randVar()})**2 >> ${randShift()}) ${randBitOp()} ${randConst()}`,
+    // Cascaded shifts with t
+    () => `(${randTVar()} ${randBitOp()} (${randVar()} >> ${pick([1,2])})) ${randBitOp()} (${randVar()} ${randBitOp()} (${randVar()} >> ${pick([2,3,4])}))`,
+    // Spiral / radial with t offset
+    () => `((x - t) * (x - t) + (y - t) * (y - t)) >> ${pick([4,6,8,10])}`,
+    // Wave interference — two scrolling patterns XORed
+    () => `((x + t) ^ (y - t)) ${randBitOp()} ((x - t) ^ (y + t))`,
+    // Moiré beating — two slightly different scales
+    () => `((x ${randBitOp()} y) >> ${pick([1,2])}) ^ (((x + t) ${randBitOp()} (y + t)) >> ${pick([2,3])})`,
+    // Rotating quadrant — t shifts which quadrant lights up
+    () => `(((x ^ t) >> ${pick([2,3,4])}) ${randBitOp()} ((y ^ t) >> ${pick([2,3,4])})) & ${pick([1,3,7,15])}`,
+    // Pulse / breathing — t modulates the mask
+    () => `(x ${randBitOp()} y) & ((t >> ${pick([2,3,4])}) | ${pick([1,3,7])})`,
+    // Counter-scroll — x and y scroll opposite directions
+    () => `((x + t) ${randBitOp()} (y - t)) >> ${randShift()}`,
+    // Fractal zoom — t shifts the scale
+    () => `((x >> (t >> ${pick([4,5,6])})) ${randBitOp()} (y >> (t >> ${pick([4,5,6])})))`,
+    // Diagonal wipe with bitwise texture
+    () => `((x + y + t) >> ${pick([2,3,4])}) ${randBitOp()} (x ${randBitOp()} y)`,
+    // Multiply by t for evolving density
+    () => `((x ${randBitOp()} y) * (t >> ${pick([3,4,5])})) >> ${pick([6,8,10])}`,
   ];
 
   return pick(templates)();
@@ -1572,6 +1704,21 @@ function updateFormulaError(msg) {
 }
 
 // ========================================================
+// ZOOM ORIGIN HELPERS
+// ========================================================
+
+function getZoomOffsetU() {
+  return zoomOrigin === 'center' ? (zoomRefU - currentUmax) / 2 : 0;
+}
+function getZoomOffsetV() {
+  return zoomOrigin === 'center' ? (zoomRefV - currentVmax) / 2 : 0;
+}
+function updateZoomRef() {
+  zoomRefU = currentUmax;
+  zoomRefV = currentVmax;
+}
+
+// ========================================================
 // SCHEDULING
 // ========================================================
 
@@ -1580,6 +1727,7 @@ function scheduleRender() {
   // Stop any running animation to avoid orphaned state
   if (bqAnimRunning) bqAnimStop();
   if (animating) stopAnimation();
+  updateZoomRef();
   cancelRender = true;
   renderTimeout = setTimeout(() => { renderFractal(); }, 100);
 }
@@ -1592,6 +1740,7 @@ function renderFormulaImmediate() {
   let resW = currentResW, resH = currentResH;
   let umax = currentUmax;
   let vmax = currentVmax;
+  let offU = getZoomOffsetU(), offV = getZoomOffsetV();
   let t = currentT;
   let fn = compiledFormula;
   let colorMode = formulaColorMode;
@@ -1612,10 +1761,10 @@ function renderFormulaImmediate() {
   let popcountLUT = (colorMode === 'popcount_heat') ? bakePopcountLUT() : null;
 
   for (let j = 0; j < resH; j++) {
-    let yc = (j / resH * vmax) | 0;
+    let yc = Math.max(0, (j / resH * vmax + offV) | 0);
     let rowOff = j * resW;
     for (let i = 0; i < resW; i++) {
-      let xc = (i / resW * umax) | 0;
+      let xc = Math.max(0, (i / resW * umax + offU) | 0);
       let val;
       try { val = fn(xc, yc, t) | 0; } catch(e) { val = 0; }
 
@@ -1712,6 +1861,7 @@ function renderBqMode(onComplete) {
 
   let p = currentP, q = currentQ, R = currentR;
   let umax = currentUmax, vmax = currentVmax, resW = currentResW, resH = currentResH;
+  let offU = getZoomOffsetU(), offV = getZoomOffsetV();
   let D = currentD, mapping = currentMapping, palette = currentPalette;
   let bitplaneK = parseInt(document.getElementById('bp-input').value) || 0;
   let kmin = -D;
@@ -1721,7 +1871,7 @@ function renderBqMode(onComplete) {
   let magmaLUT = buildMagmaLUT(R, p);
 
   // 2) Estimate max digits needed and build power tables
-  let maxCoord = Math.max(umax, vmax);
+  let maxCoord = Math.max(umax + Math.max(0, offU), vmax + Math.max(0, offV));
   let maxDigits = maxCoord > 0 ? Math.floor(Math.log(maxCoord) / Math.log(p)) + 2 : 2;
   let pPow = buildPowerTable(p, maxDigits);
   let qPow = buildPowerTable(q, maxDigits);
@@ -1742,10 +1892,10 @@ function renderBqMode(onComplete) {
   let uCoords = new Float64Array(resW);
   let vCoords = new Float64Array(resH);
   for (let i = 0; i < resW; i++) {
-    uCoords[i] = (i / resW) * umax;
+    uCoords[i] = Math.max(0, (i / resW) * umax + offU);
   }
   for (let i = 0; i < resH; i++) {
-    vCoords[i] = (i / resH) * vmax;
+    vCoords[i] = Math.max(0, (i / resH) * vmax + offV);
   }
 
   function renderChunk() {
@@ -2016,6 +2166,7 @@ function evalBitwiseOp(op, a, b) {
 function renderLayersImmediate() {
   let resW = currentResW, resH = currentResH;
   let umax = currentUmax, vmax = currentVmax;
+  let offU = getZoomOffsetU(), offV = getZoomOffsetV();
   let t = currentT;
   let colorMode = layersColorMode;
   let layers = bitwiseLayers;
@@ -2035,10 +2186,10 @@ function renderLayersImmediate() {
   let popcountLUT = (colorMode === 'popcount_heat') ? bakePopcountLUT() : null;
 
   for (let j = 0; j < resH; j++) {
-    let yc = (j / resH * vmax) | 0;
+    let yc = Math.max(0, (j / resH * vmax + offV) | 0);
     let rowOff = j * resW;
     for (let i = 0; i < resW; i++) {
-      let xc = (i / resW * umax) | 0;
+      let xc = Math.max(0, (i / resW * umax + offU) | 0);
 
       // Compute each layer's value
       let layerVals = new Array(layers.length);
@@ -2530,8 +2681,7 @@ function loadLayersPreset(name) {
   document.getElementById('feedback-iterations').value = layersFeedback.iterations;
   document.getElementById('feedback-op').value = layersFeedback.op;
   document.getElementById('feedback-source').value = layersFeedback.source;
-  document.getElementById('layers-t-slider').value = currentT;
-  document.getElementById('layers-t-label').textContent = currentT;
+  syncTControls(true);
   renderLayerStackUI();
   scheduleRender();
 }
@@ -2608,8 +2758,7 @@ function randomLayers() {
   // Reset t to 0 for layers mode — large t values cause the t-based shift
   // modulation to push all layers beyond useful range
   currentT = 0;
-  document.getElementById('layers-t-slider').value = 0;
-  document.getElementById('layers-t-label').textContent = '0';
+  syncTControls(true);
 
   // Compute max safe shift: beyond this, all coords become 0
   let maxCoord = Math.max(umax, vmax, 1);
@@ -2693,6 +2842,9 @@ function toggleAnimation() {
 }
 
 function startAnimation() {
+  updateZoomRef();
+  tAccumulator = 0;
+  loopPingPongDir = 1;
   animating = true;
   let btnId = currentMode === 'layers' ? 'layers-anim-play-btn' : 'anim-play-btn';
   document.getElementById(btnId).innerHTML = '&#9724; Stop';
@@ -2708,36 +2860,208 @@ function stopAnimation() {
   if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
 }
 
+// Wrap a value within [min, max] (inclusive), looping around
+function wrapRange(val, min, max) {
+  let range = max - min + 1;
+  return ((((val - min) % range) + range) % range) + min;
+}
+
+// Apply one animation step to the active layers target; returns status string
+function applyLayersAnimStep(target, step) {
+  if (target === 'shift') {
+    for (let L of bitwiseLayers) L.shift = wrapRange((L.shift + Math.round(step)) | 0, -16, 16);
+    renderLayerStackUI();
+    return `shifts=${bitwiseLayers.map(L => L.shift).join(',')}`;
+  } else if (target === 'scale') {
+    for (let L of bitwiseLayers) L.scale = wrapRange((L.scale + Math.round(step)) | 0, 1, 32);
+    renderLayerStackUI();
+    return `scales=${bitwiseLayers.map(L => L.scale).join(',')}`;
+  } else if (target === 'fb_iter') {
+    layersFeedback.enabled = true;
+    layersFeedback.iterations = wrapRange((layersFeedback.iterations + Math.round(step)) | 0, 1, 16);
+    document.getElementById('feedback-enable').checked = true;
+    document.getElementById('feedback-iterations').value = layersFeedback.iterations;
+    return `feedback iterations=${layersFeedback.iterations}`;
+  } else if (target === 'fb_op') {
+    let ops = ['XOR','AND','OR','NAND','NOR','XNOR','ADD','SUB'];
+    let idx = ops.indexOf(layersFeedback.op);
+    if (idx < 0) idx = 0;
+    idx = ((idx + Math.round(step)) % ops.length + ops.length) % ops.length;
+    layersFeedback.op = ops[idx];
+    layersFeedback.enabled = true;
+    document.getElementById('feedback-enable').checked = true;
+    document.getElementById('feedback-op').value = layersFeedback.op;
+    return `feedback op=${layersFeedback.op}`;
+  }
+  return '';
+}
+
+let tAccumulator = 0;
+
+function syncTControls(isLayers) {
+  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
+  let valueId = isLayers ? 'layers-t-value' : 't-value';
+  let labelId = isLayers ? 'layers-t-label' : 't-label';
+  document.getElementById(sliderId).value = currentT;
+  document.getElementById(valueId).value = currentT;
+  document.getElementById(labelId).textContent = currentT;
+}
+
+function resetT(isLayers) {
+  currentT = 0;
+  syncTControls(isLayers);
+  if (!animating) scheduleRender();
+}
+
+// ========================================================
+// LOOP CONTROLS
+// ========================================================
+
+function toggleLoop(enabled) {
+  loopEnabled = enabled;
+  if (enabled) {
+    // Set sensible defaults: ±200 around current t
+    loopIn = currentT - 200;
+    loopOut = currentT + 200;
+  }
+  loopPingPongDir = 1;
+  syncLoopControls();
+}
+
+function togglePingPong(enabled) {
+  pingPongEnabled = enabled;
+  loopPingPongDir = 1;
+  // Sync both panels
+  document.getElementById('pingpong-enable').checked = enabled;
+  document.getElementById('layers-pingpong-enable').checked = enabled;
+}
+
+function setLoopPoint(which, val) {
+  if (which === 'in') {
+    loopIn = val;
+    if (loopIn >= loopOut) loopOut = loopIn + 1;
+  } else {
+    loopOut = val;
+    if (loopOut <= loopIn) loopIn = loopOut - 1;
+  }
+  syncLoopControls();
+}
+
+function syncLoopControls() {
+  // Update both formula and layers panel loop elements
+  let prefixes = ['', 'layers-'];
+  for (let p of prefixes) {
+    let cb = document.getElementById(p + 'loop-enable');
+    if (cb) cb.checked = loopEnabled;
+    let inSlider = document.getElementById(p + 'loop-in-slider');
+    let outSlider = document.getElementById(p + 'loop-out-slider');
+    let fill = document.getElementById(p + 'loop-range-fill');
+    let section = document.getElementById(p + 'loop-section');
+    let inVal = document.getElementById(p + 'loop-in-value');
+    let outVal = document.getElementById(p + 'loop-out-value');
+    let ppCb = document.getElementById(p + 'pingpong-enable');
+
+    if (inSlider) { inSlider.value = loopIn; inSlider.style.display = loopEnabled ? '' : 'none'; }
+    if (outSlider) { outSlider.value = loopOut; outSlider.style.display = loopEnabled ? '' : 'none'; }
+    if (fill) fill.style.display = loopEnabled ? '' : 'none';
+    if (section) section.style.display = loopEnabled ? '' : 'none';
+    if (inVal) inVal.value = loopIn;
+    if (outVal) outVal.value = loopOut;
+    if (ppCb) ppCb.checked = pingPongEnabled;
+  }
+  if (loopEnabled) {
+    updateLoopFill('');
+    updateLoopFill('layers-');
+  }
+}
+
+function updateLoopFill(prefix) {
+  let fill = document.getElementById(prefix + 'loop-range-fill');
+  let sliderId = prefix ? 'layers-t-slider' : 't-slider';
+  let slider = document.getElementById(sliderId);
+  if (!fill || !slider) return;
+  let min = parseFloat(slider.min), max = parseFloat(slider.max);
+  let range = max - min;
+  if (range <= 0) return;
+  let leftPct = ((loopIn - min) / range) * 100;
+  let widthPct = ((loopOut - loopIn) / range) * 100;
+  fill.style.left = leftPct + '%';
+  fill.style.width = widthPct + '%';
+}
+
+function applyTStep(step, isLayers) {
+  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
+  let slider = document.getElementById(sliderId);
+  let min = parseFloat(slider.min), max = parseFloat(slider.max);
+  // Accumulate fractional steps so speeds < 1 still progress
+  tAccumulator += step;
+  let intStep = Math.trunc(tAccumulator);
+  if (intStep !== 0) {
+    tAccumulator -= intStep;
+    if (loopEnabled) {
+      if (pingPongEnabled) {
+        // Bounce at loop boundaries by reversing direction
+        let actualStep = intStep * loopPingPongDir;
+        let newT = currentT + actualStep;
+        if (newT >= loopOut) {
+          newT = loopOut - (newT - loopOut);
+          loopPingPongDir *= -1;
+        } else if (newT <= loopIn) {
+          newT = loopIn + (loopIn - newT);
+          loopPingPongDir *= -1;
+        }
+        currentT = Math.max(loopIn, Math.min(loopOut, newT));
+      } else {
+        currentT = wrapRange(currentT + intStep, loopIn, loopOut);
+      }
+    } else {
+      currentT = wrapRange(currentT + intStep, min, max);
+    }
+    syncTControls(isLayers);
+  }
+  return `t=${currentT}`;
+}
+
 function animLoop() {
   if (!animating) return;
   let isLayers = currentMode === 'layers';
   let speedId = isLayers ? 'layers-anim-speed' : 'anim-speed';
   let dirId = isLayers ? 'layers-anim-dir' : 'anim-dir';
-  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
-  let labelId = isLayers ? 'layers-t-label' : 't-label';
 
   animSpeed = parseFloat(document.getElementById(speedId).value) || 1;
   animDir = parseInt(document.getElementById(dirId).value) || 1;
-  currentT += animSpeed * animDir;
-  document.getElementById(sliderId).value = currentT;
-  document.getElementById(labelId).textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
+  let step = animSpeed * animDir;
+
+  let target = isLayers ? document.getElementById('layers-anim-target').value : 't';
+  let statusText;
+
+  if (target === 't' || !isLayers) {
+    statusText = applyTStep(step, isLayers);
+  } else {
+    statusText = applyLayersAnimStep(target, step);
+  }
 
   if (isLayers) renderLayersImmediate();
   else renderFormulaImmediate();
 
-  document.getElementById('status').textContent = `Animating... t=${Number.isInteger(currentT) ? currentT : currentT.toFixed(2)}`;
+  document.getElementById('status').textContent = `Animating... ${statusText}`;
   animFrameId = requestAnimationFrame(animLoop);
 }
 
 function stepT(dir) {
   let isLayers = currentMode === 'layers';
   let speedId = isLayers ? 'layers-anim-speed' : 'anim-speed';
-  let sliderId = isLayers ? 'layers-t-slider' : 't-slider';
-  let labelId = isLayers ? 'layers-t-label' : 't-label';
   let speed = parseFloat(document.getElementById(speedId).value) || 1;
-  currentT += Math.abs(speed) * dir;
-  document.getElementById(sliderId).value = currentT;
-  document.getElementById(labelId).textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
+  let step = Math.abs(speed) * dir;
+
+  let target = isLayers ? document.getElementById('layers-anim-target').value : 't';
+
+  if (target === 't' || !isLayers) {
+    applyTStep(step, isLayers);
+  } else {
+    applyLayersAnimStep(target, step);
+  }
+
   if (currentMode === 'formula') renderFormulaImmediate();
   else if (currentMode === 'layers') renderLayersImmediate();
   else scheduleRender();
@@ -2931,13 +3255,13 @@ function loadFormulaPreset(name) {
   if (currentMode !== 'formula') switchMode('formula');
   document.getElementById('formula-input').value = preset.formula;
   document.getElementById('formula-color-select').value = preset.color;
-  document.getElementById('t-slider').value = preset.t;
-  document.getElementById('t-label').textContent = preset.t;
+  currentT = preset.t;
+  syncTControls(false);
   document.getElementById('umax-input').value = preset.umax;
   document.getElementById('vmax-input').value = preset.vmax;
   document.getElementById('anim-speed').value = preset.speed;
   document.getElementById('anim-dir').value = preset.dir;
-  currentT = preset.t; currentUmax = preset.umax; currentVmax = preset.vmax;
+  currentUmax = preset.umax; currentVmax = preset.vmax;
   currentFormula = preset.formula;
   compiledFormula = compileFormula(preset.formula);
   formulaColorMode = preset.color;
@@ -2992,6 +3316,13 @@ function captureState() {
     state.t = currentT;
     state.speed = parseFloat(document.getElementById('anim-speed').value) || 1;
     state.dir = parseInt(document.getElementById('anim-dir').value) || 1;
+  }
+  // Loop state (shared across formula/layers)
+  if (currentMode !== 'bq') {
+    state.loopEnabled = loopEnabled;
+    state.loopIn = loopIn;
+    state.loopOut = loopOut;
+    state.pingPong = pingPongEnabled;
   }
   return state;
 }
@@ -3049,8 +3380,7 @@ function restoreState(state) {
     if (state.layersColor) { layersColorMode = state.layersColor; document.getElementById('layers-color-select').value = state.layersColor; }
     if (state.t != null) {
       currentT = state.t;
-      document.getElementById('layers-t-slider').value = state.t;
-      document.getElementById('layers-t-label').textContent = Number.isInteger(state.t) ? state.t : state.t.toFixed(2);
+      syncTControls(true);
     }
     if (state.speed != null) document.getElementById('layers-anim-speed').value = state.speed;
     if (state.dir != null) document.getElementById('layers-anim-dir').value = state.dir;
@@ -3067,12 +3397,19 @@ function restoreState(state) {
     if (state.color) { formulaColorMode = state.color; document.getElementById('formula-color-select').value = state.color; }
     if (state.t != null) {
       currentT = state.t;
-      document.getElementById('t-slider').value = state.t;
-      document.getElementById('t-label').textContent = Number.isInteger(state.t) ? state.t : state.t.toFixed(2);
+      syncTControls(false);
     }
     if (state.speed != null) document.getElementById('anim-speed').value = state.speed;
     if (state.dir != null) document.getElementById('anim-dir').value = state.dir;
     stopAnimation();
+  }
+  // Restore loop state
+  if (state.loopEnabled != null) {
+    loopEnabled = state.loopEnabled;
+    loopIn = state.loopIn != null ? state.loopIn : 0;
+    loopOut = state.loopOut != null ? state.loopOut : 500;
+    pingPongEnabled = state.pingPong || false;
+    syncLoopControls();
   }
   scheduleRender();
 }
@@ -3339,11 +3676,16 @@ function getExportConfig() {
 // Get animation config from whichever mode is active, using shared export frames/fps
 function getActiveAnimConfig() {
   let exp = getExportConfig();
-  if (currentMode === 'formula') {
-    return { mode: 'formula', frames: exp.frames, fps: exp.fps };
-  }
-  if (currentMode === 'layers') {
-    return { mode: 'layers', frames: exp.frames, fps: exp.fps };
+  if (currentMode === 'formula' || currentMode === 'layers') {
+    let frames = exp.frames;
+    if (loopEnabled) {
+      let speedId = currentMode === 'layers' ? 'layers-anim-speed' : 'anim-speed';
+      let speed = Math.abs(parseFloat(document.getElementById(speedId).value) || 1);
+      let loopRange = Math.abs(loopOut - loopIn);
+      frames = Math.max(2, Math.ceil(loopRange / speed));
+      if (pingPongEnabled) frames *= 2;
+    }
+    return { mode: currentMode, frames, fps: exp.fps, loopExport: loopEnabled };
   }
   let bq = getBqAnimConfig();
   // For export, override frames/fps from export section
@@ -3382,6 +3724,7 @@ function applyBqAnimValue(param, value) {
 function bqAnimPreview() {
   if (bqAnimRunning) return;
   let cfg = getBqAnimConfig();
+  updateZoomRef();
   bqAnimRunning = true;
   bqAnimCancelFlag = false;
   document.getElementById('bq-anim-play-btn').style.display = 'none';
@@ -3427,6 +3770,11 @@ function bqStepAnim(dir) {
   let eased = applyEasing(t, cfg.easing);
   let val = cfg.start + (cfg.end - cfg.start) * eased;
   applyBqAnimValue(cfg.param, val);
+  // Sync frame slider and value field
+  document.getElementById('bq-frame-slider').value = bqAnimFrameIdx;
+  document.getElementById('bq-frame-slider').max = cfg.frames - 1;
+  document.getElementById('bq-frame-value').value = bqAnimFrameIdx + 1;
+  document.getElementById('bq-frame-value').max = cfg.frames;
   document.getElementById('bq-anim-status').textContent =
     `Frame ${bqAnimFrameIdx + 1}/${cfg.frames} — ${cfg.param}=${val.toFixed(3)}`;
   scheduleRender();
@@ -3461,12 +3809,10 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
       updateRoughnessDisplay();
     } else if (cfg.mode === 'layers') {
       currentT = savedT;
-      document.getElementById('layers-t-slider').value = savedT;
-      document.getElementById('layers-t-label').textContent = savedT;
+      syncTControls(true);
     } else {
       currentT = savedT;
-      document.getElementById('t-slider').value = savedT;
-      document.getElementById('t-label').textContent = savedT;
+      syncTControls(false);
     }
   }
 
@@ -3483,15 +3829,31 @@ function renderFrameSequence(onFrame, onDone, onProgress) {
       let eased = applyEasing(t, cfg.easing);
       let val = cfg.start + (cfg.end - cfg.start) * eased;
       applyBqAnimValue(cfg.param, val);
-    } else if (cfg.mode === 'layers') {
-      let speed = parseFloat(document.getElementById('layers-anim-speed').value) || 1;
-      let dir = parseInt(document.getElementById('layers-anim-dir').value) || 1;
-      currentT = savedT + frameIdx * speed * dir;
-    } else {
-      // Formula mode: advance t parameter
-      let speed = parseFloat(document.getElementById('anim-speed').value) || 1;
-      let dir = parseInt(document.getElementById('anim-dir').value) || 1;
-      currentT = savedT + frameIdx * speed * dir;
+    } else if (cfg.mode === 'layers' || cfg.mode === 'formula') {
+      let speedId = cfg.mode === 'layers' ? 'layers-anim-speed' : 'anim-speed';
+      let dirId = cfg.mode === 'layers' ? 'layers-anim-dir' : 'anim-dir';
+      let speed = parseFloat(document.getElementById(speedId).value) || 1;
+      let dir = parseInt(document.getElementById(dirId).value) || 1;
+
+      if (cfg.loopExport) {
+        // Export the loop range
+        let loopRange = loopOut - loopIn;
+        let pos = frameIdx * Math.abs(speed);
+        if (pingPongEnabled) {
+          // Ping-pong: reflect within 2*loopRange cycle
+          let cycle = loopRange * 2;
+          pos = pos % cycle;
+          if (pos > loopRange) pos = cycle - pos;
+          currentT = (dir >= 0) ? loopIn + pos : loopOut - pos;
+        } else {
+          // Simple loop: wrap within range
+          pos = pos % (loopRange + 1);
+          currentT = (dir >= 0) ? loopIn + pos : loopOut - pos;
+        }
+        currentT = Math.round(currentT);
+      } else {
+        currentT = savedT + frameIdx * speed * dir;
+      }
     }
 
     if (onProgress) onProgress(frameIdx, totalFrames);
@@ -3898,7 +4260,7 @@ function exportMP4() {
   });
 
   encoder.configure({
-    codec: 'avc1.42001f',
+    codec: 'avc1.640028',
     width: encW,
     height: encH,
     bitrate: 8_000_000,
@@ -3997,10 +4359,12 @@ function setup() {
   // Shared inputs
   document.getElementById('umax-input').addEventListener('change', () => {
     currentUmax = parseInt(document.getElementById('umax-input').value) || 100;
+    updateZoomRef();
     scheduleRender();
   });
   document.getElementById('vmax-input').addEventListener('change', () => {
     currentVmax = parseInt(document.getElementById('vmax-input').value) || 100;
+    updateZoomRef();
     scheduleRender();
   });
   document.getElementById('resw-input').addEventListener('input', onResChange);
@@ -4022,11 +4386,7 @@ function setup() {
     formulaColorMode = document.getElementById('formula-color-select').value;
     if (!animating) scheduleRender();
   });
-  document.getElementById('t-slider').addEventListener('input', () => {
-    currentT = parseFloat(document.getElementById('t-slider').value);
-    document.getElementById('t-label').textContent = Number.isInteger(currentT) ? currentT : currentT.toFixed(2);
-    if (!animating) scheduleRender();
-  });
+  // t-slider input handled by inline oninput on the element
 
   renderUserPresetList();
   renderFractal();
@@ -4053,6 +4413,14 @@ window.wrapFormula = wrapFormula;
 window.formulaUndo = formulaUndo;
 window.bqAnimPreview = bqAnimPreview;
 window.bqAnimStop = bqAnimStop;
+window.bqStepAnim = bqStepAnim;
+window.syncTControls = syncTControls;
+window.resetT = resetT;
+window.toggleLoop = toggleLoop;
+window.togglePingPong = togglePingPong;
+window.setLoopPoint = setLoopPoint;
+window.syncLoopControls = syncLoopControls;
+window.updateLoopFill = updateLoopFill;
 window.loadLayersPreset = loadLayersPreset;
 window.randomLayers = randomLayers;
 window.addBitwiseLayer = addBitwiseLayer;
